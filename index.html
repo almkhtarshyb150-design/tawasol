@@ -1,1 +1,82 @@
 
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tawasol — تواصل 🤝</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
+    :root{--bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;--blue:#3b82f6;--green:#22c55e}
+    body{background:var(--bg);color:var(--text);min-height:100vh}
+    .hidden{display:none !important}
+    .start-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:100}
+    .start-card{background:var(--card);padding:2rem;border-radius:1rem;width:90%;max-width:400px;text-align:center}
+    input,button{width:100%;padding:.8rem 1rem;border:none;border-radius:.5rem;font-size:1rem;margin:.5rem 0}
+    input{background:rgba(255,255,255,.1);color:var(--text);border:1px solid rgba(255,255,255,.15)}
+    button{background:var(--blue);color:white;font-weight:bold;cursor:pointer}
+    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;background:var(--card);position:sticky;top:0}
+    .input-area{position:fixed;bottom:0;left:0;right:0;padding:.8rem;background:var(--card);display:flex;gap:.5rem}
+    .input-area input{flex:1;margin:0}
+    .message{max-width:80%;padding:.8rem 1rem;border-radius:1rem;margin:.5rem 0}
+    .message.me{background:var(--blue);margin-left:auto}
+    .message.other{background:var(--card);margin-right:auto}
+  </style>
+</head>
+<body>
+
+<div id="startScreen" class="start-screen">
+  <div class="start-card">
+    <h1>🤝 تواصل</h1>
+    <p>أدخل اسمك لتبدأ</p>
+    <input type="text" id="nameInput" placeholder="اكتب اسمك هنا...">
+    <button onclick="startApp()">ابدأ الاستخدام</button>
+  </div>
+</div>
+
+<div id="mainApp" class="hidden">
+  <div class="top-bar">
+    <span id="userNameDisplay">المستخدم</span>
+  </div>
+  <div style="padding:1rem;padding-bottom:5rem;padding-top:4rem">
+    <h3>مرحباً بك في تواصل 🤝</h3>
+    <p style="margin:1rem 0;opacity:.8">التطبيق جاهز للعمل ✅</p>
+    <div id="messages"></div>
+  </div>
+  <div class="input-area">
+    <input type="text" id="msgInput" placeholder="اكتب رسالتك...">
+    <button onclick="sendMsg()">إرسال</button>
+  </div>
+</div>
+
+<script>
+let userName = '';
+function startApp() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return alert('اكتب اسمك أولاً!');
+  userName = name;
+  document.getElementById('userNameDisplay').textContent = name;
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  addMsg('نظام', 'أهلاً بك يا ' + userName + '! التطبيق يعمل بنجاح ✅');
+}
+function addMsg(from, text, isMe = false) {
+  const div = document.createElement('div');
+  div.className = 'message ' + (isMe ? 'me' : 'other');
+  div.innerHTML = '<strong>' + from + ':</strong><br>' + text;
+  document.getElementById('messages').appendChild(div);
+  window.scrollTo(0, document.body.scrollHeight);
+}
+function sendMsg() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(userName, text, true);
+  input.value = '';
+}
+document.getElementById('msgInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') sendMsg();
+});
+</script>
+</body>
+</html>
