@@ -1,128 +1,203 @@
-
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#00897b">
+  <meta name="theme-color" content="#0f1b2b">
   <title>Tawasol — تواصل 🤝</title>
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-storage-compat.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    :root{--bg:#0f1b2b;--card:#1a2c42;--input-bg:#24344d;--text:#e6edf3;--blue:#3b82f6;--green:#22c55e;--ai:#a855f7;--red:#ef4444}
-    html,body{height:100%;overflow:hidden}
-    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+    :root{
+      --bg:#0f1b2b;--card:#1a2c47;--card-hover:#24345c;
+      --text:#ffffff;--text-desc:#a0b4cc;
+      --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
+      --accent:#00d4ff
+    }
+    *{user-select:none}
+    body{background:var(--bg);color:var(--text);min-height:100vh;padding:1rem}
 
-    /* شاشة البداية */
+    /* === شاشة البداية === */
     .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:2rem}
     .start-screen.hidden{display:none}
-    .app-title{font-size:2.2rem;font-weight:bold;margin-bottom:.5rem}
-    .app-desc{opacity:.7;margin-bottom:1.5rem}
-    .input{width:100%;max-width:400px;padding:.9rem 1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
-    .btn{width:100%;max-width:400px;padding:.9rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;transition:.2s}
-    .btn-primary{background:var(--blue);color:white}
-    .btn-primary:hover{opacity:.9}
-    .btn-sm{max-width:150px;padding:.6rem;font-size:.9rem;margin:.5rem .25rem}
+    .app-title{font-size:1.8rem;font-weight:bold;margin-bottom:2rem;display:flex;align-items:center;gap:.5rem}
+    .mode-row{display:flex;gap:1rem;margin-bottom:2rem}
+    .mode-btn{padding:.6rem 1.5rem;border-radius:2rem;border:none;font-size:1rem;cursor:pointer;transition:.2s}
+    .mode-btn.net{background:rgba(34,197,94,.15);color:var(--green)}
+    .mode-btn.net.active{background:var(--green);color:white;box-shadow:0 0 10px rgba(34,197,94,.4)}
+    .mode-btn.local{background:rgba(239,68,68,.15);color:var(--red)}
+    .mode-btn.local.active{background:var(--red);color:white;box-shadow:0 0 10px rgba(239,68,68,.4)}
+    .input{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
+    .btn{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;background:var(--blue);color:white;transition:.2s}
+    .btn:hover{transform:scale(1.02)}
 
-    /* الصفحات */
-    .page{display:none;flex:1;flex-direction:column;height:100%}
-    .page.active{display:flex}
-    .page-header{padding:1rem;text-align:center;background:var(--card);font-size:1.3rem;font-weight:bold;flex-shrink:0}
-    .messages{flex:1;overflow-y:auto;padding:1rem}
-    .msg{background:var(--card);padding:.75rem 1rem;border-radius:1.2rem;margin:.4rem 0;max-width:82%;line-height:1.5}
+    /* === رأس الصفحة === */
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding:.5rem 0}
+    .mode-indicator{display:flex;gap:.5rem}
+    .mode-tag{padding:.4rem 1rem;border-radius:2rem;font-size:.9rem;font-weight:500}
+    .mode-tag.online{background:rgba(34,197,94,.15);color:var(--green)}
+    .mode-tag.offline{background:rgba(239,68,68,.15);color:var(--red)}
+    .app-name{font-size:1.3rem;font-weight:bold;color:var(--accent)}
+
+    /* === الترحيب === */
+    .welcome{text-align:center;margin-bottom:2rem}
+    .welcome h1{font-size:1.5rem;margin-bottom:.5rem}
+    .welcome p{color:var(--text-desc)}
+
+    /* === الأزرار الرئيسية — زي الصورة === */
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;max-width:500px;margin:0 auto}
+    .main-btn{background:var(--card);border:none;border-radius:1rem;padding:2rem 1rem;color:var(--text);cursor:pointer;transition:.2s;text-align:center}
+    .main-btn:hover{background:var(--card-hover);transform:translateY(-3px)}
+    .main-btn .icon{font-size:2rem;margin-bottom:.8rem;display:block}
+    .main-btn .label{font-size:1rem;font-weight:500}
+
+    /* === الصفحات === */
+    .page{display:none;padding:1rem 0}
+    .page.active{display:block}
+    .page-title{font-size:1.3rem;font-weight:bold;margin-bottom:1.5rem;text-align:center}
+    .back-btn{background:transparent;border:none;color:var(--accent);font-size:1rem;cursor:pointer;margin-bottom:1rem;display:inline-flex;align-items:center;gap:.5rem}
+
+    /* === الرسائل === */
+    .messages{max-height:60vh;overflow-y:auto;margin-bottom:1rem}
+    .msg{background:var(--card);padding:.9rem 1.1rem;border-radius:1rem;margin:.5rem 0;max-width:85%}
     .msg.me{margin-left:auto;background:var(--blue)}
-    .msg.ai{background:var(--ai);color:white;margin-right:auto}
-    .msg.loading{opacity:.7;font-style:italic}
+    .msg.other{margin-right:auto}
+    .msg.ai{background:linear-gradient(135deg,#7c3aed,#06b6d4);margin-right:auto}
+    .msg-time{font-size:.75rem;opacity:.6;margin-top:.4rem}
+    .msg-del{float:left;background:var(--red);border:none;color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;margin-right:.5rem;opacity:0;transition:.2s}
+    .msg:hover .msg-del{opacity:1}
 
-    /* شريط الكتابة */
-    .input-bar{display:flex;gap:.5rem;padding:.75rem;background:var(--card);flex-shrink:0}
-    .input-bar .input{margin:0;flex:1;background:var(--input-bg)}
-    .send-btn{width:auto;padding:.9rem 1.2rem;border:none;border-radius:.75rem;background:var(--green);color:white;font-weight:bold;cursor:pointer;flex-shrink:0}
+    /* === شريط الكتابة === */
+    .input-bar{display:flex;gap:.5rem;align-items:center;position:fixed;bottom:1rem;left:1rem;right:1rem;max-width:500px;margin:0 auto}
+    .input-bar .input{margin:0;flex:1;background:var(--card)}
+    .send-btn{padding:1rem 1.5rem;border:none;border-radius:.75rem;background:var(--green);color:white;font-weight:bold;cursor:pointer}
+    .attach-btn{background:var(--card);border:none;color:white;padding:1rem;border-radius:.75rem;cursor:pointer}
 
-    /* شريط التنقل */
-    .nav{display:flex;justify-content:space-around;padding:.6rem;background:var(--card);flex-shrink:0}
-    .nav-btn{background:transparent;border:none;color:var(--text);opacity:.6;padding:.5rem;display:flex;flex-direction:column;align-items:center;gap:.1rem;font-size:.7rem}
-    .nav-btn.active{opacity:1;color:var(--blue)}
+    /* === مفتاح الذكاء === */
+    .key-box{background:var(--card);padding:1.2rem;border-radius:1rem;margin-bottom:1rem}
+    .key-box p{margin-bottom:.5rem;color:var(--text-desc)}
+    .key-box a{color:var(--accent)}
 
-    /* مكالمات */
-    .video-area{padding:1rem;text-align:center}
-    .video-box{background:#000;border-radius:.8rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem auto;max-width:500px;overflow:hidden}
+    /* === مكالمة فيديو === */
+    .video-box{background:#000;border-radius:1rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem 0;overflow:hidden}
     video{width:100%;height:100%;object-fit:cover}
-    .status{padding:.6rem;border-radius:.5rem;margin:.5rem 0}
-    .status.info{background:#3b82f622}
-    .status.success{background:#22c55e22}
-    .status.warn{background:#ff980022}
+    .call-buttons{display:flex;gap:.5rem;justify-content:center;margin-top:1rem}
+    .btn-red{background:var(--red)}
+    .btn-green{background:var(--green)}
 
-    /* إعداد المفتاح */
-    .key-setup{background:#2a3b5c;padding:1rem;border-radius:.75rem;margin-bottom:1rem}
-    .key-setup p{font-size:.9rem;opacity:.8;margin-bottom:.5rem}
-    .key-setup a{color:var(--blue)}
+    /* === إشعار === */
+    .toast{position:fixed;top:1rem;right:1rem;background:var(--green);color:white;padding:.9rem 1.2rem;border-radius:.75rem;z-index:999;display:none;box-shadow:0 4px 15px rgba(0,0,0,.3)}
+    .toast.show{display:block}
+    .toast.err{background:var(--red)}
+
+    /* تحديث تلقائي */
+    .refresh-note{text-align:center;font-size:.8rem;color:var(--text-desc);margin-top:1rem}
   </style>
 </head>
 <body>
 
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt,.zip" style="display:none">
+
 <!-- شاشة البداية -->
 <div class="start-screen" id="startScreen">
-  <h1 class="app-title">تواصل 🤝</h1>
-  <p class="app-desc">رسائل • صوت • فيديو • ذكاء اصطناعي من جوجل</p>
-  
-  <!-- مفتاح جوجل -->
-  <div class="key-setup" id="keySetupBox">
-    <p>🔑 أدخل مفتاح الذكاء الاصطناعي من جوجل:</p>
-    <input type="password" id="apiKeyInput" class="input" placeholder="مفتاح Gemini من جوجل...">
-    <p style="font-size:.8rem">كيف تجلب المفتاح؟ اذهب لموقع <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → أنشئ مفتاحاً مجانياً ✅</p>
-    <button id="saveKeyBtn" class="btn btn-primary btn-sm">✅ حفظ المفتاح</button>
+  <h1 class="app-title">Tawasol 🤝</h1>
+  <div class="mode-row">
+    <button class="mode-btn net active" data-mode="net">🌐 الإنترنت</button>
+    <button class="mode-btn local" data-mode="local">📡 محلي</button>
   </div>
-  
-  <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك هنا...">
-  <button id="startBtn" class="btn btn-primary" style="display:none">✅ ابدأ الاستخدام</button>
+  <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
+  <button id="startBtn" class="btn">✅ ابدأ</button>
 </div>
 
-<!-- صفحة الرسائل العامة -->
-<div class="page" id="pagePublic">
-  <div class="page-header">💬 الرسائل العامة</div>
-  <div class="messages" id="publicMsgs"></div>
-</div>
-
-<!-- صفحة الخاصة -->
-<div class="page" id="pagePrivate">
-  <div class="page-header">👤 رسائل خاصة</div>
-  <div class="messages" id="privateMsgs">
-    <div class="msg">اكتب: اسم الشخص: رسالتك</div>
+<!-- الشاشة الرئيسية -->
+<div id="mainApp" style="display:none">
+  <div class="header">
+    <div class="mode-indicator">
+      <span class="mode-tag online" id="modeTag">🌐 بالإنترنت</span>
+    </div>
+    <div class="app-name">Tawasol 🤝</div>
   </div>
-</div>
 
-<!-- صفحة المكالمات -->
-<div class="page" id="pageCall">
-  <div class="page-header">📞 المكالمات</div>
-  <div class="video-area">
-    <div class="status info" id="callStatus">جاهز للمكالمة</div>
-    <div class="video-box" id="localVideoBox">كاميرتك — اضغط لتشغيل</div>
-    <button class="btn btn-primary" id="startCamBtn">📷 تشغيل الكاميرا والصوت</button>
+  <div class="welcome">
+    <h1>👋 أهلاً بك يا <span id="userNameDisplay"></span></h1>
+    <p id="modeDesc">الوضع: عبر الإنترنت — يتحدث تلقائياً كل ثانيتين ⚡</p>
   </div>
-</div>
 
-<!-- صفحة الذكاء الاصطناعي من جوجل -->
-<div class="page" id="pageAI">
-  <div class="page-header">🤖 ذكاء جوجل</div>
-  <div class="messages" id="aiMsgs">
-    <div class="msg ai">أهلاً بك! أنا ذكاء اصطناعي مرتبط بجوجل 🧠 اسألني أي شيء وسأبحث لك وأجيبك من مصادر حقيقية ✅</div>
+  <!-- الأزرار الرئيسية زي الصورة -->
+  <div class="grid" id="mainGrid">
+    <button class="main-btn" data-page="private">
+      <span class="icon">💬</span>
+      <span class="label">رسائل خاصة</span>
+    </button>
+    <button class="main-btn" data-page="public">
+      <span class="icon">📢</span>
+      <span class="label">الرسائل العامة</span>
+    </button>
+    <button class="main-btn" data-page="ai">
+      <span class="icon">🤖</span>
+      <span class="label">المساعد الذكي</span>
+    </button>
+    <button class="main-btn" data-page="call">
+      <span class="icon">🎥</span>
+      <span class="label">مكالمة فيديو</span>
+    </button>
   </div>
+
+  <!-- صفحة الرسائل الخاصة -->
+  <div class="page" id="pagePrivate">
+    <button class="back-btn" data-back="main">← رجوع</button>
+    <h2 class="page-title">💬 الرسائل الخاصة</h2>
+    <p style="text-align:center;color:var(--text-desc);margin-bottom:1rem">اختر شخصاً من القائمة:</p>
+    <div class="messages" id="privateUsersList">جاري التحميل...</div>
+    <div class="messages" id="privateChat" style="display:none"></div>
+  </div>
+
+  <!-- صفحة الرسائل العامة -->
+  <div class="page" id="pagePublic">
+    <button class="back-btn" data-back="main">← رجوع</button>
+    <h2 class="page-title">📢 الرسائل العامة</h2>
+    <div class="messages" id="publicMsgs"></div>
+  </div>
+
+  <!-- صفحة الذكاء الاصطناعي -->
+  <div class="page" id="pageAI">
+    <button class="back-btn" data-back="main">← رجوع</button>
+    <h2 class="page-title">🤖 المساعد الذكي</h2>
+    <div class="key-box">
+      <p>🔑 مفتاح جوجل Gemini (مجاني):</p>
+      <input type="password" id="apiKeyInput" class="input" placeholder="ضع المفتاح هنا...">
+      <button id="saveKeyBtn" class="btn" style="max-width:100%">✅ حفظ المفتاح</button>
+      <p style="margin-top:.5rem;font-size:.8rem">من: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></p>
+    </div>
+    <div class="messages" id="aiMsgs">
+      <div class="msg ai">أهلاً بك! ضع المفتاح ثم اسألني أي سؤال 😊</div>
+    </div>
+  </div>
+
+  <!-- صفحة المكالمة -->
+  <div class="page" id="pageCall">
+    <button class="back-btn" data-back="main">← رجوع</button>
+    <h2 class="page-title">🎥 مكالمة فيديو</h2>
+    <div class="video-box" id="localVideoBox">كاميرتك</div>
+    <div class="video-box" id="remoteVideoBox">كاميرا الطرف الآخر</div>
+    <div class="call-buttons">
+      <button class="btn" id="startCamBtn">📷 تشغيل الكاميرا</button>
+      <button class="btn btn-green" id="callStartBtn" style="display:none">📞 اتصال</button>
+      <button class="btn btn-red" id="callEndBtn" style="display:none">❌ إنهاء</button>
+    </div>
+  </div>
+
+  <p class="refresh-note">⚡ تحديث تلقائي كل 2 ثانية</p>
 </div>
 
 <!-- شريط الكتابة -->
 <div class="input-bar" id="inputBar" style="display:none">
+  <button class="attach-btn" id="attachBtn">📎</button>
   <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
   <button class="send-btn" id="sendBtn">إرسال</button>
-</div>
-
-<!-- شريط التنقل -->
-<div class="nav" id="navBar" style="display:none">
-  <button class="nav-btn active" data-page="public">💬 عام</button>
-  <button class="nav-btn" data-page="private">👤 خاص</button>
-  <button class="nav-btn" data-page="call">📞 مكالمة</button>
-  <button class="nav-btn" data-page="ai">🤖 جوجل</button>
 </div>
 
 <script>
@@ -137,164 +212,354 @@ const firebaseConfig = {
 };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const storage = firebase.storage();
 
-// ===== بياناتك =====
-let userName = '';
-let currentPage = 'public';
+// ===== بيانات =====
+let userName = '', currentMode = 'net', currentPage = 'main', chatWith = null;
 let GEMINI_API_KEY = localStorage.getItem('gemini_key') || '';
+let localStream = null, peerConn = null, callDoc = null;
+let selectedFile = null;
+const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+
+// ===== إظهار إشعار =====
+function showToast(text, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.className = `toast show ${isErr?'err':''}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== طلب إذن الإشعارات =====
+async function requestNotify() {
+  if (Notification.permission === 'default') await Notification.requestPermission();
+}
+function showNotify(title, body) {
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body, icon: 'https://cdn-icons-png.flaticon.com/512/1157/1157005.png' });
+  }
+}
+
+// ===== اختيار الوضع =====
+document.querySelectorAll('.mode-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.mode-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    currentMode = b.dataset.mode;
+  };
+});
 
 // ===== حفظ المفتاح =====
-document.getElementById('saveKeyBtn').addEventListener('click', () => {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) return alert('اكتب المفتاح أولاً!');
-  GEMINI_API_KEY = key;
-  localStorage.setItem('gemini_key', key);
-  document.getElementById('keySetupBox').style.display = 'none';
-  document.getElementById('startBtn').style.display = 'block';
-  alert('✅ تم حفظ المفتاح! الآن اكتب اسمك وابدأ');
-});
+document.getElementById('saveKeyBtn').onclick = () => {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) return alert('ضع المفتاح أولاً!');
+  GEMINI_API_KEY = k;
+  localStorage.setItem('gemini_key', k);
+  showToast('✅ تم حفظ المفتاح');
+};
 
 // ===== الدخول =====
-document.getElementById('startBtn').addEventListener('click', () => {
-  const name = document.getElementById('nameInput').value.trim();
-  if (!name) return alert('اكتب اسمك أولاً!');
-  userName = name;
-  
+document.getElementById('startBtn').onclick = async () => {
+  const n = document.getElementById('nameInput').value.trim();
+  if (!n) return alert('اكتب اسمك!');
+  userName = n;
+  await requestNotify();
+
+  await db.collection('users').doc(userName).set({
+    online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp(), mode: currentMode
+  }, { merge: true });
+
+  window.onbeforeunload = async () => {
+    await db.collection('users').doc(userName).update({ online: false });
+  };
+
+  // إخفاء البداية وإظهار التطبيق
   document.getElementById('startScreen').classList.add('hidden');
-  document.getElementById('navBar').style.display = 'flex';
-  document.getElementById('inputBar').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('userNameDisplay').textContent = userName;
   
-  loadPublicChat();
-});
+  // تحديث وصف الوضع
+  document.getElementById('modeTag').textContent = currentMode==='net'?'🌐 بالإنترنت':'📡 محلي';
+  document.getElementById('modeDesc').textContent = currentMode==='net'
+    ? 'الوضع: عبر الإنترنت — تحديث تلقائي ⚡'
+    : 'الوضع: محلي — تأكد من نفس شبكة الواي فاي ⚡';
 
-// ===== التنقل =====
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPage = btn.dataset.page;
-    
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const pageId = 'page' + currentPage.charAt(0).toUpperCase() + currentPage.slice(1);
-    document.getElementById(pageId).classList.add('active');
-    
-    document.getElementById('inputBar').style.display = currentPage === 'call' ? 'none' : 'flex';
-    scrollToBottom();
-  });
-});
+  loadUsersList();
+  startAutoRefresh();
+};
 
-function scrollToBottom() {
-  setTimeout(() => {
-    const msgs = document.querySelector('.page.active .messages');
-    if (msgs) msgs.scrollTop = msgs.scrollHeight;
-  }, 50);
-}
-
-// ===== الرسائل العامة =====
-function loadPublicChat() {
-  db.collection('public_chat').orderBy('time').limitToLast(30).onSnapshot(snap => {
-    const box = document.getElementById('publicMsgs');
-    box.innerHTML = '';
+// ===== تحميل قائمة المستخدمين للرسائل الخاصة =====
+function loadUsersList() {
+  db.collection('users').onSnapshot(snap => {
+    const list = document.getElementById('privateUsersList');
+    list.innerHTML = '';
+    let has = false;
     snap.forEach(doc => {
-      const m = doc.data();
+      if (doc.id === userName) return;
+      has = true;
+      const u = doc.data();
       const div = document.createElement('div');
-      div.className = 'msg' + (m.from === userName ? ' me' : '');
-      div.textContent = m.from + ': ' + m.text;
-      box.appendChild(div);
+      div.className = 'msg';
+      div.style.cursor = 'pointer';
+      div.innerHTML = `
+        <span style="color:${u.online?'var(--green)':'var(--red)'}">●</span>
+        ${doc.id} — ${u.online?'متصل':'غير متصل'}
+      `;
+      div.onclick = () => openPrivateChat(doc.id);
+      list.appendChild(div);
     });
-    scrollToBottom();
+    if (!has) list.innerHTML = '<div class="msg">لا يوجد أحد آخر حالياً ✅ أنت الأول!</div>';
   });
 }
 
-// ===== إرسال الرسائل =====
-document.getElementById('sendBtn').addEventListener('click', sendMsg);
-document.getElementById('msgInput').addEventListener('keydown', e => e.key === 'Enter' && sendMsg());
+// ===== فتح محادثة خاصة =====
+function openPrivateChat(target) {
+  chatWith = target;
+  document.getElementById('privateUsersList').style.display = 'none';
+  document.getElementById('privateChat').style.display = 'block';
+  document.getElementById('inputBar').style.display = 'flex';
+  loadChatMessages();
+}
 
-async function sendMsg() {
-  const input = document.getElementById('msgInput');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
+// ===== تحميل رسائل خاصة — تحديث تلقائي =====
+function loadChatMessages() {
+  if (!chatWith) return;
+  const chatId = [userName, chatWith].sort().join('_');
   
-  if (currentPage === 'public') {
-    db.collection('public_chat').add({
-      from: userName,
-      text: text,
-      time: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }
-  
-  if (currentPage === 'ai') {
-    if (!GEMINI_API_KEY) {
-      alert('⚠️ لم تضع مفتاح جوجل بعد! أعد تحميل الصفحة وضعه أولاً');
-      return;
-    }
-    
-    const aiBox = document.getElementById('aiMsgs');
-    // رسالتك
-    const myDiv = document.createElement('div');
-    myDiv.className = 'msg me';
-    myDiv.textContent = text;
-    aiBox.appendChild(myDiv);
-    
-    // جاري البحث
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'msg ai loading';
-    loadingDiv.textContent = 'جاري البحث في جوجل...';
-    aiBox.appendChild(loadingDiv);
-    scrollToBottom();
-    
-    // طلب من جوجل
-    try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: text }] }]
-        })
+  db.collection('chats').doc(chatId).collection('messages')
+    .orderBy('time').limitToLast(50)
+    .onSnapshot(snap => {
+      const box = document.getElementById('privateChat');
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const m = doc.data();
+        if (m.deleted) return;
+        const div = document.createElement('div');
+        div.className = `msg ${m.from === userName ? 'me' : 'other'}`;
+        if (m.from === userName) {
+          div.innerHTML = `<button class="msg-del" data-id="${doc.id}">×</button>`;
+        }
+        if (m.type === 'image') {
+          div.innerHTML += `<strong>${m.from}</strong><br><img src="${m.url}" style="max-width:200px;border-radius:.5rem;margin:.5rem 0">`;
+        } else if (m.type === 'file') {
+          div.innerHTML += `<strong>${m.from}</strong><br>📎 <a href="${m.url}" target="_blank" style="color:inherit">${m.fileName}</a>`;
+        } else {
+          div.innerHTML += `<strong>${m.from}</strong><br>${m.text}`;
+        }
+        div.innerHTML += `<div class="msg-time">${m.time?.toDate?new Date(m.time.toDate()).toLocaleTimeString('ar-LY'):''}</div>`;
+        box.appendChild(div);
       });
       
-      const data = await res.json();
-      loadingDiv.remove();
+      // حذف عند الجميع
+      box.querySelectorAll('.msg-del').forEach(btn => {
+        btn.onclick = async e => {
+          if (!confirm('حذف عند الجميع؟')) return;
+          const id = e.target.dataset.id;
+          const cid = [userName, chatWith].sort().join('_');
+          await db.collection('chats').doc(cid).collection('messages').doc(id).update({ deleted: true });
+          showToast('✅ تم الحذف');
+        };
+      });
       
-      let reply = 'عذراً، لم أستطع الحصول على إجابة 😅';
-      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-        reply = data.candidates[0].content.parts[0].text;
-      }
+      box.scrollTop = box.scrollHeight;
+    });
+}
+
+// ===== تحميل الرسائل العامة — تحديث تلقائي =====
+function loadPublicMessages() {
+  db.collection('public_chat').orderBy('time').limitToLast(50)
+    .onSnapshot(snap => {
+      const box = document.getElementById('publicMsgs');
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const m = doc.data();
+        if (m.deleted) return;
+        const div = document.createElement('div');
+        div.className = `msg ${m.from === userName ? 'me' : 'other'}`;
+        if (m.from === userName) {
+          div.innerHTML = `<button class="msg-del" data-id="${doc.id}">×</button>`;
+        }
+        div.innerHTML += `<strong>${m.from}</strong><br>${m.text}`;
+        div.innerHTML += `<div class="msg-time">${m.time?.toDate?new Date(m.time.toDate()).toLocaleTimeString('ar-LY'):''}</div>`;
+        box.appendChild(div);
+      });
       
-      const aiDiv = document.createElement('div');
-      aiDiv.className = 'msg ai';
-      aiDiv.textContent = reply;
-      aiBox.appendChild(aiDiv);
+      box.querySelectorAll('.msg-del').forEach(btn => {
+        btn.onclick = async e => {
+          if (!confirm('حذف عند الجميع؟')) return;
+          await db.collection('public_chat').doc(e.target.dataset.id).update({ deleted: true });
+          showToast('✅ تم الحذف من الجميع');
+        };
+      });
       
-    } catch (err) {
-      loadingDiv.remove();
-      const errDiv = document.createElement('div');
-      errDiv.className = 'msg ai';
-      errDiv.textContent = '❌ خطأ في الاتصال: تأكد من المفتاح والإنترنت';
-      aiBox.appendChild(errDiv);
+      box.scrollTop = box.scrollHeight;
+    });
+}
+
+// ===== التنقل بين الصفحات =====
+document.querySelectorAll('.main-btn').forEach(btn => {
+  btn.onclick = () => {
+    const page = btn.dataset.page;
+    currentPage = page;
+    
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById(`page${page.charAt(0).toUpperCase()+page.slice(1)}`).style.display = 'block';
+    
+    if (page === 'private') {
+      document.getElementById('privateUsersList').style.display = 'block';
+      document.getElementById('privateChat').style.display = 'none';
+      document.getElementById('inputBar').style.display = 'none';
+    } else if (page === 'public') {
+      document.getElementById('inputBar').style.display = 'flex';
+      loadPublicMessages();
+    } else if (page === 'ai') {
+      document.getElementById('inputBar').style.display = 'flex';
+    } else {
+      document.getElementById('inputBar').style.display = 'none';
+    }
+  };
+});
+
+// ===== زر الرجوع =====
+document.querySelectorAll('.back-btn').forEach(btn => {
+  btn.onclick = () => {
+    currentPage = 'main';
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById('mainGrid').style.display = 'grid';
+    document.getElementById('inputBar').style.display = 'none';
+    chatWith = null;
+  };
+});
+
+// ===== ملفات ومرفقات =====
+document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = e => {
+  selectedFile = e.target.files[0];
+  if (selectedFile) showToast(`✅ تم اختيار: ${selectedFile.name}`);
+};
+
+// ===== إرسال الرسائل =====
+document.getElementById('sendBtn').onclick = sendMsg;
+document.getElementById('msgInput').onkeydown = e => e.key === 'Enter' && sendMsg();
+
+async function sendMsg() {
+  const inp = document.getElementById('msgInput');
+  const text = inp.value.trim();
+  if (!text && !selectedFile) return;
+  inp.value = '';
+
+  if (currentPage === 'private' && chatWith) {
+    const chatId = [userName, chatWith].sort().join('_');
+    let data = { from: userName, to: chatWith, text, time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false, type: 'text' };
+    
+    if (selectedFile) {
+      const path = `uploads/${chatId}/${Date.now()}_${selectedFile.name}`;
+      const ref = storage.ref(path);
+      await ref.put(selectedFile);
+      const url = await ref.getDownloadURL();
+      data = { ...data, url, fileName: selectedFile.name, type: selectedFile.type.startsWith('image/')?'image':'file' };
+      selectedFile = null;
     }
     
-    scrollToBottom();
+    await db.collection('chats').doc(chatId).collection('messages').add(data);
+  }
+
+  if (currentPage === 'public') {
+    await db.collection('public_chat').add({
+      from: userName, text, time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false
+    });
+  }
+
+  if (currentPage === 'ai') {
+    const box = document.getElementById('aiMsgs');
+    box.innerHTML += `<div class="msg me">${text}</div>`;
+    const loading = document.createElement('div');
+    loading.className = 'msg ai';
+    loading.textContent = 'جاري التفكير...';
+    box.appendChild(loading);
+    box.scrollTop = box.scrollHeight;
+
+    let reply = '';
+    if (GEMINI_API_KEY) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: `أجب بالعربية: ${text}` }] }] })
+        });
+        const d = await res.json();
+        reply = d?.candidates?.[0]?.content?.parts?.[0]?.text || 'لم أفهم جيداً';
+      } catch { reply = '⚠️ تحقق من المفتاح أو النت'; }
+    } else {
+      reply = '⚠️ ضع مفتاح جوجل أعلاه لكي أجيبك بدقة ✅';
+    }
+
+    loading.remove();
+    box.innerHTML += `<div class="msg ai">${reply}</div>`;
+    box.scrollTop = box.scrollHeight;
   }
 }
 
-// ===== الكاميرا =====
-document.getElementById('startCamBtn').addEventListener('click', async () => {
+// ===== مكالمة فيديو =====
+document.getElementById('startCamBtn').onclick = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     const box = document.getElementById('localVideoBox');
     box.innerHTML = '';
     const vid = document.createElement('video');
-    vid.srcObject = stream;
-    vid.autoplay = true;
-    vid.muted = true;
+    vid.srcObject = localStream; vid.autoplay = true; vid.muted = true;
     box.appendChild(vid);
-    document.getElementById('startCamBtn').textContent = '✅ الكاميرا شغالة';
-  } catch {
-    alert('لم يتم السماح بالكاميرا — عادي استخدم باقي التطبيق ✅');
-  }
-});
+    document.getElementById('callStartBtn').style.display = 'inline-block';
+    showToast('✅ الكاميرا شغالة');
+  } catch (e) { alert('خطأ: ' + e.message); }
+};
+
+document.getElementById('callStartBtn').onclick = async () => {
+  const target = prompt('اكتب اسم الشخص للاتصال به:');
+  if (!target) return;
+  chatWith = target;
+
+  peerConn = new RTCPeerConnection(rtcConfig);
+  localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
+  
+  peerConn.ontrack = e => {
+    const box = document.getElementById('remoteVideoBox');
+    box.innerHTML = '';
+    const vid = document.createElement('video');
+    vid.srcObject = e.streams[0]; vid.autoplay = true;
+    box.appendChild(vid);
+    showNotify('مكالمة ✅', 'تم الاتصال');
+  };
+
+  const callId = [userName, chatWith].sort().join('_');
+  callDoc = db.collection('calls').doc(callId);
+  const offer = await peerConn.createOffer();
+  await peerConn.setLocalDescription(offer);
+  await callDoc.set({ offer: peerConn.localDescription, from: userName, to: chatWith });
+
+  document.getElementById('callStartBtn').style.display = 'none';
+  document.getElementById('callEndBtn').style.display = 'inline-block';
+  showToast(`📞 جاري الاتصال بـ ${target}`);
+};
+
+document.getElementById('callEndBtn').onclick = () => {
+  if (peerConn) peerConn.close();
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  if (callDoc) callDoc.delete().catch(()=>{});
+  peerConn = null; localStream = null; callDoc = null;
+  document.getElementById('localVideoBox').innerHTML = 'كاميرتك';
+  document.getElementById('remoteVideoBox').innerHTML = 'كاميرا الطرف الآخر';
+  document.getElementById('callStartBtn').style.display = 'inline-block';
+  document.getElementById('callEndBtn').style.display = 'none';
+  showToast('✅ تم إنهاء المكالمة');
+};
+
+// ===== تحديث تلقائي كل 2 ثانية =====
+function startAutoRefresh() {
+  setInterval(() => {
+    if (currentPage === 'public') loadPublicMessages();
+    if (currentPage === 'private' && chatWith) loadChatMessages();
+  }, 2000);
+}
 </script>
 </body>
 </html>
