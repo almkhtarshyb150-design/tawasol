@@ -23,22 +23,13 @@
     .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:2rem}
     .start-screen.hidden{display:none}
     .app-title{font-size:1.8rem;font-weight:bold;margin-bottom:2rem;display:flex;align-items:center;gap:.5rem}
-    .mode-row{display:flex;gap:1rem;margin-bottom:2rem}
-    .mode-btn{padding:.6rem 1.5rem;border-radius:2rem;border:none;font-size:1rem;cursor:pointer;transition:.2s}
-    .mode-btn.net{background:rgba(34,197,94,.15);color:var(--green)}
-    .mode-btn.net.active{background:var(--green);color:white;box-shadow:0 0 10px rgba(34,197,94,.4)}
-    .mode-btn.local{background:rgba(239,68,68,.15);color:var(--red)}
-    .mode-btn.local.active{background:var(--red);color:white;box-shadow:0 0 10px rgba(239,68,68,.4)}
     .input{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
     .btn{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;background:var(--blue);color:white;transition:.2s}
     .btn:hover{transform:scale(1.02)}
 
     /* === رأس الصفحة === */
     .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding:.5rem 0}
-    .mode-indicator{display:flex;gap:.5rem}
-    .mode-tag{padding:.4rem 1rem;border-radius:2rem;font-size:.9rem;font-weight:500}
-    .mode-tag.online{background:rgba(34,197,94,.15);color:var(--green)}
-    .mode-tag.offline{background:rgba(239,68,68,.15);color:var(--red)}
+    .mode-tag{padding:.4rem 1rem;border-radius:2rem;font-size:.9rem;font-weight:500;background:rgba(34,197,94,.15);color:var(--green)}
     .app-name{font-size:1.3rem;font-weight:bold;color:var(--accent)}
 
     /* === الترحيب === */
@@ -101,13 +92,10 @@
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt,.zip" style="display:none">
 
-<!-- شاشة البداية -->
+<!-- شاشة البداية — زر محلي محذوف ✅ -->
 <div class="start-screen" id="startScreen">
   <h1 class="app-title">Tawasol 🤝</h1>
-  <div class="mode-row">
-    <button class="mode-btn net active" data-mode="net">🌐 الإنترنت</button>
-    <button class="mode-btn local" data-mode="local">📡 محلي</button>
-  </div>
+  <p style="color:var(--green);margin-bottom:1.5rem;font-size:1.1rem">🌐 يعمل عبر الإنترنت</p>
   <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
   <button id="startBtn" class="btn">✅ ابدأ</button>
 </div>
@@ -115,18 +103,16 @@
 <!-- الشاشة الرئيسية -->
 <div id="mainApp" style="display:none">
   <div class="header">
-    <div class="mode-indicator">
-      <span class="mode-tag online" id="modeTag">🌐 بالإنترنت</span>
-    </div>
+    <span class="mode-tag">🌐 بالإنترنت</span>
     <div class="app-name">Tawasol 🤝</div>
   </div>
 
   <div class="welcome">
     <h1>👋 أهلاً بك يا <span id="userNameDisplay"></span></h1>
-    <p id="modeDesc">الوضع: عبر الإنترنت — يتحدث تلقائياً كل ثانيتين ⚡</p>
+    <p>الوضع: متصل بالإنترنت — تحديث تلقائي كل 2 ثانية ⚡</p>
   </div>
 
-  <!-- الأزرار الرئيسية زي الصورة -->
+  <!-- الأزرار الرئيسية زي الصورة تماماً -->
   <div class="grid" id="mainGrid">
     <button class="main-btn" data-page="private">
       <span class="icon">💬</span>
@@ -215,7 +201,7 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // ===== بيانات =====
-let userName = '', currentMode = 'net', currentPage = 'main', chatWith = null;
+let userName = '', currentPage = 'main', chatWith = null;
 let GEMINI_API_KEY = localStorage.getItem('gemini_key') || '';
 let localStream = null, peerConn = null, callDoc = null;
 let selectedFile = null;
@@ -239,15 +225,6 @@ function showNotify(title, body) {
   }
 }
 
-// ===== اختيار الوضع =====
-document.querySelectorAll('.mode-btn').forEach(b => {
-  b.onclick = () => {
-    document.querySelectorAll('.mode-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    currentMode = b.dataset.mode;
-  };
-});
-
 // ===== حفظ المفتاح =====
 document.getElementById('saveKeyBtn').onclick = () => {
   const k = document.getElementById('apiKeyInput').value.trim();
@@ -257,7 +234,7 @@ document.getElementById('saveKeyBtn').onclick = () => {
   showToast('✅ تم حفظ المفتاح');
 };
 
-// ===== الدخول =====
+// ===== الدخول — محلي محذوف، إنترنت فقط ✅ =====
 document.getElementById('startBtn').onclick = async () => {
   const n = document.getElementById('nameInput').value.trim();
   if (!n) return alert('اكتب اسمك!');
@@ -265,7 +242,7 @@ document.getElementById('startBtn').onclick = async () => {
   await requestNotify();
 
   await db.collection('users').doc(userName).set({
-    online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp(), mode: currentMode
+    online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
 
   window.onbeforeunload = async () => {
@@ -276,18 +253,12 @@ document.getElementById('startBtn').onclick = async () => {
   document.getElementById('startScreen').classList.add('hidden');
   document.getElementById('mainApp').style.display = 'block';
   document.getElementById('userNameDisplay').textContent = userName;
-  
-  // تحديث وصف الوضع
-  document.getElementById('modeTag').textContent = currentMode==='net'?'🌐 بالإنترنت':'📡 محلي';
-  document.getElementById('modeDesc').textContent = currentMode==='net'
-    ? 'الوضع: عبر الإنترنت — تحديث تلقائي ⚡'
-    : 'الوضع: محلي — تأكد من نفس شبكة الواي فاي ⚡';
 
   loadUsersList();
   startAutoRefresh();
 };
 
-// ===== تحميل قائمة المستخدمين للرسائل الخاصة =====
+// ===== تحميل قائمة المستخدمين =====
 function loadUsersList() {
   db.collection('users').onSnapshot(snap => {
     const list = document.getElementById('privateUsersList');
@@ -349,7 +320,6 @@ function loadChatMessages() {
         box.appendChild(div);
       });
       
-      // حذف عند الجميع
       box.querySelectorAll('.msg-del').forEach(btn => {
         btn.onclick = async e => {
           if (!confirm('حذف عند الجميع؟')) return;
@@ -364,7 +334,7 @@ function loadChatMessages() {
     });
 }
 
-// ===== تحميل الرسائل العامة — تحديث تلقائي =====
+// ===== تحميل الرسائل العامة =====
 function loadPublicMessages() {
   db.collection('public_chat').orderBy('time').limitToLast(50)
     .onSnapshot(snap => {
@@ -408,11 +378,9 @@ document.querySelectorAll('.main-btn').forEach(btn => {
       document.getElementById('privateUsersList').style.display = 'block';
       document.getElementById('privateChat').style.display = 'none';
       document.getElementById('inputBar').style.display = 'none';
-    } else if (page === 'public') {
+    } else if (page === 'public' || page === 'ai') {
       document.getElementById('inputBar').style.display = 'flex';
-      loadPublicMessages();
-    } else if (page === 'ai') {
-      document.getElementById('inputBar').style.display = 'flex';
+      if (page === 'public') loadPublicMessages();
     } else {
       document.getElementById('inputBar').style.display = 'none';
     }
@@ -488,7 +456,7 @@ async function sendMsg() {
         });
         const d = await res.json();
         reply = d?.candidates?.[0]?.content?.parts?.[0]?.text || 'لم أفهم جيداً';
-      } catch { reply = '⚠️ تحقق من المفتاح أو النت'; }
+      } catch { reply = '⚠️ تحقق من المفتاح أو الاتصال بالإنترنت'; }
     } else {
       reply = '⚠️ ضع مفتاح جوجل أعلاه لكي أجيبك بدقة ✅';
     }
