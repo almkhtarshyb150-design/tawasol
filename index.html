@@ -7,30 +7,32 @@
   <title>Tawasol — تواصل 🤝</title>
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-storage-compat.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
     :root{
       --bg:#0f1b2b;--card:#1a2c47;--card-hover:#24345c;
       --text:#ffffff;--text-desc:#a0b4cc;
       --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
-      --accent:#00d4ff
+      --offline:#4b5563;--accent:#00d4ff;--purple:#a855f7
     }
-    *{user-select:none}
     body{background:var(--bg);color:var(--text);min-height:100vh;padding:1rem}
 
     .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:2rem}
     .start-screen.hidden{display:none}
-    .app-title{font-size:1.8rem;font-weight:bold;margin-bottom:2rem;display:flex;align-items:center;gap:.5rem}
-    .status-msg{color:var(--text-desc);margin-bottom:1rem;font-size:.9rem}
+    .app-title{font-size:2rem;font-weight:bold;margin-bottom:.5rem}
+    .status-msg{color:var(--text-desc);margin-bottom:1.5rem;font-size:.9rem}
     .input{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
     .btn{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;background:var(--blue);color:white;transition:.2s}
     .btn:hover{transform:scale(1.02)}
-    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .btn-small{width:auto;padding:.6rem 1.2rem;font-size:.9rem;border-radius:.5rem}
 
     .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding:.5rem 0}
-    .mode-tag{padding:.4rem 1rem;border-radius:2rem;font-size:.9rem;font-weight:500;background:rgba(34,197,94,.15);color:var(--green)}
-    .app-name{font-size:1.3rem;font-weight:bold;color:var(--accent)}
+    .mode-buttons{display:flex;gap:.75rem}
+    .mode-btn{padding:.5rem 1rem;border-radius:2rem;font-size:.9rem;font-weight:500;border:none;cursor:pointer;transition:.2s}
+    .mode-btn.active.online{background:rgba(34,197,94,.15);color:var(--green);border:1px solid var(--green)}
+    .mode-btn.active.local{background:rgba(255,152,0,.15);color:#ff9800;border:1px solid #ff9800}
+    .mode-btn.inactive{background:transparent;color:var(--text-desc);border:1px solid transparent;opacity:.6}
+    .app-name{font-size:1.4rem;font-weight:bold;color:var(--accent)}
 
     .welcome{text-align:center;margin-bottom:2rem}
     .welcome h1{font-size:1.5rem;margin-bottom:.5rem}
@@ -44,62 +46,72 @@
 
     .page{display:none;padding:1rem 0}
     .page.active{display:block}
-    .page-title{font-size:1.3rem;font-weight:bold;margin-bottom:1.5rem;text-align:center}
+    .page-title{font-size:1.3rem;font-weight:bold;margin-bottom:1rem;text-align:center}
     .back-btn{background:transparent;border:none;color:var(--accent);font-size:1rem;cursor:pointer;margin-bottom:1rem;display:inline-flex;align-items:center;gap:.5rem}
 
-    .messages{max-height:60vh;overflow-y:auto;margin-bottom:1rem}
-    .msg{background:var(--card);padding:.9rem 1.1rem;border-radius:1rem;margin:.5rem 0;max-width:85%}
+    .users-list{max-height:45vh;overflow-y:auto;margin-bottom:1rem}
+    .user-item{background:var(--card);padding:1rem 1.2rem;border-radius:.8rem;margin:.5rem 0;cursor:pointer;transition:.2s;display:flex;justify-content:space-between;align-items:center}
+    .user-item:hover{background:var(--card-hover)}
+    .user-name{font-weight:500;font-size:1rem}
+    .status-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-left:.5rem}
+    .status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green)}
+    .status-dot.offline{background:var(--offline)}
+    .status-text{font-size:.85rem}
+
+    .messages{max-height:50vh;overflow-y:auto;margin-bottom:1rem}
+    .msg{background:var(--card);padding:.9rem 1.1rem;border-radius:1rem;margin:.5rem 0;max-width:85%;line-height:1.5}
     .msg.me{margin-left:auto;background:var(--blue)}
     .msg.other{margin-right:auto}
-    .msg.ai{background:linear-gradient(135deg,#7c3aed,#06b6d4);margin-right:auto}
-    .msg-time{font-size:.75rem;opacity:.6;margin-top:.4rem}
+    .msg.ai{background:linear-gradient(135deg,var(--purple),var(--accent));margin-right:auto}
+    .msg-time{font-size:.75rem;opacity:.6;margin-top:.4rem;display:block}
     .msg-del{float:left;background:var(--red);border:none;color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;margin-right:.5rem;opacity:0;transition:.2s}
     .msg:hover .msg-del{opacity:1}
 
     .input-bar{display:flex;gap:.5rem;align-items:center;position:fixed;bottom:1rem;left:1rem;right:1rem;max-width:500px;margin:0 auto}
     .input-bar .input{margin:0;flex:1;background:var(--card)}
     .send-btn{padding:1rem 1.5rem;border:none;border-radius:.75rem;background:var(--green);color:white;font-weight:bold;cursor:pointer}
-    .attach-btn{background:var(--card);border:none;color:white;padding:1rem;border-radius:.75rem;cursor:pointer}
-
-    .key-box{background:var(--card);padding:1.2rem;border-radius:1rem;margin-bottom:1rem}
-    .key-box p{margin-bottom:.5rem;color:var(--text-desc)}
-    .key-box a{color:var(--accent)}
 
     .video-box{background:#000;border-radius:1rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem 0;overflow:hidden}
     video{width:100%;height:100%;object-fit:cover}
-    .call-buttons{display:flex;gap:.5rem;justify-content:center;margin-top:1rem}
+    .call-buttons{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
     .btn-red{background:var(--red)}
     .btn-green{background:var(--green)}
+    .btn-orange{background:#ff9800}
 
     .toast{position:fixed;top:1rem;right:1rem;background:var(--green);color:white;padding:.9rem 1.2rem;border-radius:.75rem;z-index:999;display:none;box-shadow:0 4px 15px rgba(0,0,0,.3)}
     .toast.show{display:block}
     .toast.err{background:var(--red)}
+    .toast.warn{background:#ff9800}
 
     .refresh-note{text-align:center;font-size:.8rem;color:var(--text-desc);margin-top:1rem}
+    .hidden{display:none!important}
   </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt,.zip" style="display:none">
 
+<!-- شاشة البداية — بدون كلمة مرور ✅ -->
 <div class="start-screen" id="startScreen">
   <h1 class="app-title">Tawasol 🤝</h1>
-  <p style="color:var(--green);margin-bottom:1rem;font-size:1.1rem">🌐 يعمل عبر الإنترنت</p>
-  <p class="status-msg" id="statusMsg">جاري الاتصال... ✅</p>
+  <p class="status-msg" id="statusMsg">جاري التحقق... ⏳</p>
   <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
-  <button id="startBtn" class="btn">✅ ابدأ</button>
+  <button id="startBtn" class="btn">✅ ابدأ الاستخدام</button>
 </div>
 
-<div id="mainApp" style="display:none">
+<!-- الشاشة الرئيسية -->
+<div id="mainApp" class="hidden">
   <div class="header">
-    <span class="mode-tag">🌐 بالإنترنت</span>
+    <div class="mode-buttons">
+      <button class="mode-btn active online" id="onlineBtn">🌐 الإنترنت</button>
+      <button class="mode-btn inactive" id="localBtn">📍 محلي</button>
+    </div>
     <div class="app-name">Tawasol 🤝</div>
   </div>
 
   <div class="welcome">
-    <h1>👋 أهلاً بك يا <span id="userNameDisplay"></span></h1>
-    <p>متصل — تحديث تلقائي كل 2 ثانية ⚡</p>
+    <h1>أهلاً بك يا <span id="userNameDisplay"></span> 👋</h1>
+    <p id="modeDesc">الوضع: متصل بالإنترنت — جاهز ✅</p>
   </div>
 
   <div class="grid" id="mainGrid">
@@ -121,51 +133,61 @@
     </button>
   </div>
 
+  <!-- رسائل خاصة -->
   <div class="page" id="pagePrivate">
     <button class="back-btn" data-back="main">← رجوع</button>
     <h2 class="page-title">💬 الرسائل الخاصة</h2>
-    <p style="text-align:center;color:var(--text-desc);margin-bottom:1rem">اختر شخصاً من القائمة:</p>
-    <div class="messages" id="privateUsersList">جاري التحميل...</div>
-    <div class="messages" id="privateChat" style="display:none"></div>
+    <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً لمراسلته:</p>
+    <div class="users-list" id="usersList">
+      <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
+    </div>
+    <div id="chatArea" class="hidden">
+      <p style="text-align:center;margin:1rem 0;color:var(--accent)">محادثة مع: <strong id="chatWithName"></strong></p>
+      <div class="messages" id="privateChat"></div>
+    </div>
   </div>
 
+  <!-- رسائل عامة -->
   <div class="page" id="pagePublic">
     <button class="back-btn" data-back="main">← رجوع</button>
     <h2 class="page-title">📢 الرسائل العامة</h2>
     <div class="messages" id="publicMsgs"></div>
   </div>
 
+  <!-- ذكاء اصطناعي -->
   <div class="page" id="pageAI">
     <button class="back-btn" data-back="main">← رجوع</button>
     <h2 class="page-title">🤖 المساعد الذكي</h2>
-    <div class="key-box">
-      <p>🔑 مفتاح جوجل Gemini (مجاني):</p>
-      <input type="password" id="apiKeyInput" class="input" placeholder="ضع المفتاح هنا...">
-      <button id="saveKeyBtn" class="btn" style="max-width:100%">✅ حفظ المفتاح</button>
-      <p style="margin-top:.5rem;font-size:.8rem">من: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></p>
-    </div>
+    <p style="text-align:center;color:var(--green);margin-bottom:1rem">✅ جاهز — بلا أي مفتاح!</p>
     <div class="messages" id="aiMsgs">
-      <div class="msg ai">أهلاً بك! ضع المفتاح ثم اسألني أي سؤال 😊</div>
+      <div class="msg ai">أهلاً بك! اسألني أي سؤال وسأجيبك فوراً 😊</div>
     </div>
   </div>
 
+  <!-- مكالمة فيديو -->
   <div class="page" id="pageCall">
     <button class="back-btn" data-back="main">← رجوع</button>
     <h2 class="page-title">🎥 مكالمة فيديو</h2>
-    <div class="video-box" id="localVideoBox">كاميرتك</div>
-    <div class="video-box" id="remoteVideoBox">كاميرا الطرف الآخر</div>
-    <div class="call-buttons">
-      <button class="btn" id="startCamBtn">📷 تشغيل الكاميرا</button>
-      <button class="btn btn-green" id="callStartBtn" style="display:none">📞 اتصال</button>
-      <button class="btn btn-red" id="callEndBtn" style="display:none">❌ إنهاء</button>
+    <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً للاتصال به:</p>
+    <div class="users-list" id="callUsersList">
+      <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
     </div>
+    <div class="video-box" id="localVideoBox">كاميرتك — اضغط لتشغيل</div>
+    <div class="video-box" id="remoteVideoBox" style="display:none">كاميرا الطرف الآخر</div>
+    <div class="call-buttons">
+      <button class="btn btn-small" id="startCamBtn">📷 تشغيل الكاميرا</button>
+      <button class="btn btn-green btn-small" id="callBtn" style="display:none">📞 اتصل</button>
+      <button class="btn btn-orange btn-small" id="answerBtn" style="display:none">✅ استلام</button>
+      <button class="btn btn-red btn-small" id="endCallBtn" style="display:none">❌ إنهاء</button>
+    </div>
+    <p id="callStatus" style="text-align:center;margin-top:1rem;color:var(--text-desc)">جاهز للمكالمة</p>
   </div>
 
-  <p class="refresh-note">⚡ تحديث تلقائي كل 2 ثانية</p>
+  <p class="refresh-note">⚡ تحديث تلقائي كل 3 ثوانٍ</p>
 </div>
 
-<div class="input-bar" id="inputBar" style="display:none">
-  <button class="attach-btn" id="attachBtn">📎</button>
+<!-- شريط الكتابة -->
+<div class="input-bar" id="inputBar" class="hidden">
   <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
   <button class="send-btn" id="sendBtn">إرسال</button>
 </div>
@@ -174,134 +196,223 @@
 const firebaseConfig = {
   apiKey: "AIzaSyCz9x9Z8hK8eYbX7M9pR8aQw2eT3yU4i5oP7",
   authDomain: "tawasol-app.firebaseapp.com",
-  projectId: "tawasol-app",
-  storageBucket: "tawasol-app.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abc123def456ghi789jkl01"
+  projectId: "tawasol-app"
 };
 
-let db, storage;
-let isConnected = false;
+let db = null;
+let currentMode = 'online';
+let userId = '';
+let userName = '';
+let currentPage = 'main';
+let chatWith = null;
+let localStream = null, peerConn = null;
+let incomingOffer = null, callWithName = null;
 
-function showToast(text, isErr=false) {
+const localData = {
+  get(key) { try { return JSON.parse(localStorage.getItem('tawasol_' + key)) } catch { return null } },
+  set(key, val) { localStorage.setItem('tawasol_' + key, JSON.stringify(val)) },
+  getMessages() { return this.get('msgs') || [] },
+  saveMessage(m) { const a = this.getMessages(); a.push(m); this.set('msgs', a); }
+};
+
+function showToast(text, isErr=false, isWarn=false) {
   const t = document.getElementById('toast');
   t.textContent = text;
-  t.className = `toast show ${isErr?'err':''}`;
+  t.className = `toast show ${isErr?'err':isWarn?'warn':''}`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-async function initFirebase() {
+async function initDB() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    storage = firebase.storage();
-    isConnected = true;
     document.getElementById('statusMsg').textContent = '✅ متصل بالإنترنت — جاهز!';
     document.getElementById('statusMsg').style.color = 'var(--green)';
   } catch (e) {
-    document.getElementById('statusMsg').textContent = '⚠️ خطأ في الاتصال: ' + e.message;
-    document.getElementById('statusMsg').style.color = 'var(--red)';
+    document.getElementById('statusMsg').textContent = '⚠️ سيعمل بالوضع المحلي فقط';
+    document.getElementById('statusMsg').style.color = '#ff9800';
+    currentMode = 'local';
   }
 }
+initDB();
 
-initFirebase();
-
-let userName = '', currentPage = 'main', chatWith = null;
-let GEMINI_API_KEY = localStorage.getItem('gemini_key') || '';
-let localStream = null, peerConn = null, callDoc = null;
-let selectedFile = null;
-const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
-
-async function requestNotify() {
-  if (Notification.permission === 'default') await Notification.requestPermission();
-}
-function showNotify(title, body) {
-  if (Notification.permission === 'granted') {
-    new Notification(title, { body });
-  }
-}
-
-document.getElementById('saveKeyBtn').onclick = () => {
-  const k = document.getElementById('apiKeyInput').value.trim();
-  if (!k) return alert('ضع المفتاح أولاً!');
-  GEMINI_API_KEY = k;
-  localStorage.setItem('gemini_key', k);
-  showToast('✅ تم حفظ المفتاح');
+document.getElementById('onlineBtn').onclick = () => {
+  currentMode = 'online';
+  document.getElementById('onlineBtn').className = 'mode-btn active online';
+  document.getElementById('localBtn').className = 'mode-btn inactive';
+  document.getElementById('modeDesc').textContent = 'الوضع: متصل بالإنترنت — جاهز ✅';
+  if (db) { loadPublicMessages(); loadUsersList(); loadCallUsersList(); }
+};
+document.getElementById('localBtn').onclick = () => {
+  currentMode = 'local';
+  document.getElementById('localBtn').className = 'mode-btn active';
+  document.getElementById('onlineBtn').className = 'mode-btn inactive';
+  document.getElementById('modeDesc').textContent = 'الوضع: محلي — بلا إنترنت 📍';
+  loadLocalMessages();
 };
 
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+// الدخول بدون كلمة مرور ✅
 document.getElementById('startBtn').onclick = async () => {
-  if (!isConnected) {
-    return alert('❌ لم يتم الاتصال بالإنترنت!\nأعد فتح الصفحة وتأكد من النت.');
-  }
   const n = document.getElementById('nameInput').value.trim();
   if (!n) return alert('اكتب اسمك أولاً!');
   if (n.length < 2) return alert('الاسم قصير جداً!');
-  if (!/^[a-zA-Z\u0600-\u06FF\u0660-\u0669\u06F0-\u06F9 ]+$/.test(n)) {
-    return alert('استخدم حروف وأرقام فقط بدون رموز!');
-  }
   
   userName = n;
-  await requestNotify();
-
-  try {
-    await db.collection('users').doc(userName).set({
-      online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-  } catch (e) {
-    return alert('خطأ في التسجيل: ' + e.message);
-  }
-
-  window.onbeforeunload = async () => {
-    if (db && userName) {
-      await db.collection('users').doc(userName).update({ online: false }).catch(()=>{});
-    }
-  };
+  userId = makeId();
 
   document.getElementById('startScreen').classList.add('hidden');
-  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('mainApp').classList.remove('hidden');
   document.getElementById('userNameDisplay').textContent = userName;
 
-  loadUsersList();
-  startAutoRefresh();
+  if (currentMode === 'online' && db) {
+    await db.collection('users').doc(userId).set({
+      name: userName,
+      online: true,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    loadPublicMessages();
+    loadUsersList();
+    loadCallUsersList();
+    
+    window.addEventListener('beforeunload', async () => {
+      if (db) await db.collection('users').doc(userId).update({ online: false });
+    });
+  } else {
+    loadLocalMessages();
+  }
 };
 
+// قائمة المستخدمين مع نقاط الحالة ✅
 function loadUsersList() {
   if (!db) return;
-  db.collection('users').onSnapshot(snap => {
-    const list = document.getElementById('privateUsersList');
-    list.innerHTML = '';
-    let has = false;
-    snap.forEach(doc => {
-      if (doc.id === userName) return;
-      has = true;
-      const u = doc.data();
-      const div = document.createElement('div');
-      div.className = 'msg';
-      div.style.cursor = 'pointer';
-      div.innerHTML = `
-        <span style="color:${u.online?'var(--green)':'var(--red)'}">●</span>
-        ${doc.id} — ${u.online?'متصل':'غير متصل'}
-      `;
-      div.onclick = () => openPrivateChat(doc.id);
-      list.appendChild(div);
+  db.collection('users').orderBy('lastSeen', 'desc').limit(50)
+    .onSnapshot(snap => {
+      const list = document.getElementById('usersList');
+      list.innerHTML = '';
+      let hasOthers = false;
+      snap.forEach(doc => {
+        const u = doc.data();
+        if (u.name === userName) return;
+        hasOthers = true;
+        
+        const lastSeen = u.lastSeen?.toDate ? u.lastSeen.toDate() : new Date(u.lastSeen || 0);
+        const isOnline = u.online === true && (Date.now() - lastSeen.getTime()) < 120000;
+        
+        const item = document.createElement('div');
+        item.className = 'user-item';
+        item.innerHTML = `
+          <span class="user-name">${u.name}</span>
+          <span class="status-text">
+            <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+            ${isOnline ? 'متصل' : 'غير متصل'}
+          </span>
+        `;
+        item.onclick = () => openChatWith(u.name);
+        list.appendChild(item);
+      });
+      if (!hasOthers) {
+        list.innerHTML = '<p style="text-align:center;color:var(--text-desc)">لا يوجد مستخدمون آخرون حالياً 😊</p>';
+      }
     });
-    if (!has) list.innerHTML = '<div class="msg">لا يوجد أحد آخر حالياً ✅ أنت الأول!</div>';
-  });
 }
 
-function openPrivateChat(target) {
-  chatWith = target;
-  document.getElementById('privateUsersList').style.display = 'none';
-  document.getElementById('privateChat').style.display = 'block';
-  document.getElementById('inputBar').style.display = 'flex';
-  loadChatMessages();
+function loadCallUsersList() {
+  if (!db) return;
+  db.collection('users').orderBy('lastSeen', 'desc').limit(50)
+    .onSnapshot(snap => {
+      const list = document.getElementById('callUsersList');
+      list.innerHTML = '';
+      let hasOthers = false;
+      snap.forEach(doc => {
+        const u = doc.data();
+        if (u.name === userName) return;
+        hasOthers = true;
+        
+        const lastSeen = u.lastSeen?.toDate ? u.lastSeen.toDate() : new Date(u.lastSeen || 0);
+        const isOnline = u.online === true && (Date.now() - lastSeen.getTime()) < 120000;
+        
+        const item = document.createElement('div');
+        item.className = 'user-item';
+        item.innerHTML = `
+          <span class="user-name">${u.name}</span>
+          <span class="status-text">
+            <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+            ${isOnline ? 'متصل' : 'غير متصل'}
+          </span>
+        `;
+        item.onclick = () => {
+          callWithName = u.name;
+          if (localStream) {
+            document.getElementById('callStatus').textContent = `تم اختيار: ${u.name} — اضغط «اتصل»`;
+            document.getElementById('callBtn').style.display = 'inline-block';
+          } else {
+            alert('شغّل الكاميرا أولاً من الزر فوق 📷');
+          }
+        };
+        list.appendChild(item);
+      });
+      if (!hasOthers) {
+        list.innerHTML = '<p style="text-align:center;color:var(--text-desc)">لا يوجد مستخدمون آخرون حالياً 😊</p>';
+      }
+    });
 }
 
-function loadChatMessages() {
+function openChatWith(name) {
+  chatWith = name;
+  document.getElementById('chatWithName').textContent = name;
+  document.getElementById('chatArea').classList.remove('hidden');
+  document.getElementById('inputBar').classList.remove('hidden');
+  document.getElementById('privateChat').innerHTML = '';
+  if (db) loadPrivateMessages();
+}
+
+document.querySelectorAll('.main-btn').forEach(btn => {
+  btn.onclick = () => {
+    currentPage = btn.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page${currentPage.charAt(0).toUpperCase()+currentPage.slice(1)}`).classList.add('active');
+    document.getElementById('inputBar').classList.add('hidden');
+
+    if (currentPage === 'private') {
+      document.getElementById('chatArea').classList.add('hidden');
+      chatWith = null;
+      if (db) loadUsersList();
+    }
+    if (currentPage === 'call' && db) loadCallUsersList();
+    if (currentPage === 'public' && db) loadPublicMessages();
+    if (currentPage === 'ai') document.getElementById('inputBar').classList.remove('hidden');
+  };
+});
+
+function loadPublicMessages() {
+  if (!db) return;
+  db.collection('public_chat').orderBy('time').limitToLast(30)
+    .onSnapshot(snap => {
+      const box = document.getElementById('publicMsgs');
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const m = doc.data();
+        if (m.deleted) return;
+        const div = document.createElement('div');
+        div.className = `msg ${m.fromId === userId ? 'me' : ''}`;
+        div.innerHTML = `<strong>${m.fromName}</strong><br>${m.text}`;
+        if (m.fromId === userId) div.innerHTML += `<button class="msg-del" data-id="${doc.id}">×</button>`;
+        div.innerHTML += `<span class="msg-time">${formatTime(m.time)}</span>`;
+        box.appendChild(div);
+      });
+      attachDeleteListeners('public_chat');
+      box.scrollTop = box.scrollHeight;
+    });
+}
+
+function loadPrivateMessages() {
   if (!db || !chatWith) return;
   const chatId = [userName, chatWith].sort().join('_');
-  
-  db.collection('chats').doc(chatId).collection('messages')
+  db.collection('private_chats').doc(chatId).collection('messages')
     .orderBy('time').limitToLast(50)
     .onSnapshot(snap => {
       const box = document.getElementById('privateChat');
@@ -310,164 +421,112 @@ function loadChatMessages() {
         const m = doc.data();
         if (m.deleted) return;
         const div = document.createElement('div');
-        div.className = `msg ${m.from === userName ? 'me' : 'other'}`;
-        if (m.from === userName) {
-          div.innerHTML = `<button class="msg-del" data-id="${doc.id}">×</button>`;
-        }
-        if (m.type === 'image') {
-          div.innerHTML += `<strong>${m.from}</strong><br><img src="${m.url}" style="max-width:200px;border-radius:.5rem;margin:.5rem 0">`;
-        } else if (m.type === 'file') {
-          div.innerHTML += `<strong>${m.from}</strong><br>📎 <a href="${m.url}" target="_blank" style="color:inherit">${m.fileName}</a>`;
-        } else {
-          div.innerHTML += `<strong>${m.from}</strong><br>${m.text}`;
-        }
-        div.innerHTML += `<div class="msg-time">${m.time?.toDate?new Date(m.time.toDate()).toLocaleTimeString('ar-LY'):''}</div>`;
+        div.className = `msg ${m.fromId === userId ? 'me' : 'other'}`;
+        div.innerHTML = `<strong>${m.fromName}</strong><br>${m.text}`;
+        if (m.fromId === userId) div.innerHTML += `<button class="msg-del" data-id="${doc.id}">×</button>`;
+        div.innerHTML += `<span class="msg-time">${formatTime(m.time)}</span>`;
         box.appendChild(div);
       });
-      
-      box.querySelectorAll('.msg-del').forEach(btn => {
-        btn.onclick = async e => {
-          if (!confirm('حذف عند الجميع؟')) return;
-          const id = e.target.dataset.id;
-          const cid = [userName, chatWith].sort().join('_');
-          await db.collection('chats').doc(cid).collection('messages').doc(id).update({ deleted: true });
-          showToast('✅ تم الحذف');
-        };
-      });
-      
+      attachDeleteListeners(`private_chats/${chatId}/messages`);
       box.scrollTop = box.scrollHeight;
     });
 }
 
-function loadPublicMessages() {
-  if (!db) return;
-  db.collection('public_chat').orderBy('time').limitToLast(50)
-    .onSnapshot(snap => {
-      const box = document.getElementById('publicMsgs');
-      box.innerHTML = '';
-      snap.forEach(doc => {
-        const m = doc.data();
-        if (m.deleted) return;
-        const div = document.createElement('div');
-        div.className = `msg ${m.from === userName ? 'me' : 'other'}`;
-        if (m.from === userName) {
-          div.innerHTML = `<button class="msg-del" data-id="${doc.id}">×</button>`;
-        }
-        div.innerHTML += `<strong>${m.from}</strong><br>${m.text}`;
-        div.innerHTML += `<div class="msg-time">${m.time?.toDate?new Date(m.time.toDate()).toLocaleTimeString('ar-LY'):''}</div>`;
-        box.appendChild(div);
-      });
-      
-      box.querySelectorAll('.msg-del').forEach(btn => {
-        btn.onclick = async e => {
-          if (!confirm('حذف عند الجميع؟')) return;
-          await db.collection('public_chat').doc(e.target.dataset.id).update({ deleted: true });
-          showToast('✅ تم الحذف من الجميع');
-        };
-      });
-      
-      box.scrollTop = box.scrollHeight;
-    });
+function loadLocalMessages() {
+  const box = document.getElementById('publicMsgs');
+  box.innerHTML = '';
+  localData.getMessages().forEach(m => {
+    const div = document.createElement('div');
+    div.className = `msg ${m.from === userName ? 'me' : ''}`;
+    div.innerHTML = `<strong>${m.from}</strong><br>${m.text}<span class="msg-time">${m.time}</span>`;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
 }
 
-document.querySelectorAll('.main-btn').forEach(btn => {
-  btn.onclick = () => {
-    const page = btn.dataset.page;
-    currentPage = page;
-    
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    document.getElementById(`page${page.charAt(0).toUpperCase()+page.slice(1)}`).style.display = 'block';
-    
-    if (page === 'private') {
-      document.getElementById('privateUsersList').style.display = 'block';
-      document.getElementById('privateChat').style.display = 'none';
-      document.getElementById('inputBar').style.display = 'none';
-    } else if (page === 'public' || page === 'ai') {
-      document.getElementById('inputBar').style.display = 'flex';
-      if (page === 'public') loadPublicMessages();
-    } else {
-      document.getElementById('inputBar').style.display = 'none';
-    }
-  };
-});
+function formatTime(t) {
+  if (!t) return '';
+  const d = t?.toDate ? t.toDate() : new Date(t);
+  return d.toLocaleTimeString('ar-LY', {hour:'2-digit', minute:'2-digit'});
+}
 
-document.querySelectorAll('.back-btn').forEach(btn => {
-  btn.onclick = () => {
-    currentPage = 'main';
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    document.getElementById('mainGrid').style.display = 'grid';
-    document.getElementById('inputBar').style.display = 'none';
-    chatWith = null;
-  };
-});
+function attachDeleteListeners(collectionPath) {
+  document.querySelectorAll('.msg-del').forEach(btn => {
+    btn.onclick = async e => {
+      if (!confirm('حذف هذه الرسالة؟')) return;
+      if (!db) return showToast('في الوضع المحلي لا يمكن الحذف', false, true);
+      await db.collection(collectionPath).doc(e.target.dataset.id).update({ deleted: true });
+      showToast('✅ تم الحذف');
+    };
+  });
+}
 
-document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
-document.getElementById('fileInput').onchange = e => {
-  selectedFile = e.target.files[0];
-  if (selectedFile) showToast(`✅ تم اختيار: ${selectedFile.name}`);
-};
+document.getElementById('sendBtn').onclick = sendMessage;
+document.getElementById('msgInput').onkeydown = e => e.key === 'Enter' && sendMessage();
 
-document.getElementById('sendBtn').onclick = sendMsg;
-document.getElementById('msgInput').onkeydown = e => e.key === 'Enter' && sendMsg();
-
-async function sendMsg() {
-  if (!db) return alert('❌ غير متصل بقاعدة البيانات!');
+async function sendMessage() {
   const inp = document.getElementById('msgInput');
   const text = inp.value.trim();
-  if (!text && !selectedFile) return;
+  if (!text) return;
   inp.value = '';
 
-  if (currentPage === 'private' && chatWith) {
-    const chatId = [userName, chatWith].sort().join('_');
-    let data = { from: userName, to: chatWith, text, time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false, type: 'text' };
-    
-    if (selectedFile) {
-      const path = `uploads/${chatId}/${Date.now()}_${selectedFile.name}`;
-      const ref = storage.ref(path);
-      await ref.put(selectedFile);
-      const url = await ref.getDownloadURL();
-      data = { ...data, url, fileName: selectedFile.name, type: selectedFile.type.startsWith('image/')?'image':'file' };
-      selectedFile = null;
+  if (currentMode === 'online' && db) {
+    if (currentPage === 'public') {
+      await db.collection('public_chat').add({
+        fromName: userName, fromId: userId, text,
+        time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false
+      });
+    } else if (currentPage === 'private' && chatWith) {
+      const chatId = [userName, chatWith].sort().join('_');
+      await db.collection('private_chats').doc(chatId).collection('messages').add({
+        fromName: userName, fromId: userId, text,
+        time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false
+      });
+    } else if (currentPage === 'ai') {
+      await sendAIMessage(text);
     }
-    
-    await db.collection('chats').doc(chatId).collection('messages').add(data);
-  }
-
-  if (currentPage === 'public') {
-    await db.collection('public_chat').add({
-      from: userName, text, time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false
+  } else {
+    localData.saveMessage({
+      from: userName, text,
+      time: new Date().toLocaleTimeString('ar-LY', {hour:'2-digit', minute:'2-digit'})
     });
-  }
-
-  if (currentPage === 'ai') {
-    const box = document.getElementById('aiMsgs');
-    box.innerHTML += `<div class="msg me">${text}</div>`;
-    const loading = document.createElement('div');
-    loading.className = 'msg ai';
-    loading.textContent = 'جاري التفكير...';
-    box.appendChild(loading);
-    box.scrollTop = box.scrollHeight;
-
-    let reply = '';
-    if (GEMINI_API_KEY) {
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: `أجب بالعربية: ${text}` }] }] })
-        });
-        const d = await res.json();
-        reply = d?.candidates?.[0]?.content?.parts?.[0]?.text || 'لم أفهم جيداً';
-      } catch { reply = '⚠️ تحقق من المفتاح أو الاتصال بالإنترنت'; }
-    } else {
-      reply = '⚠️ ضع مفتاح جوجل أعلاه لكي أجيبك بدقة ✅';
-    }
-
-    loading.remove();
-    box.innerHTML += `<div class="msg ai">${reply}</div>`;
-    box.scrollTop = box.scrollHeight;
+    loadLocalMessages();
   }
 }
+
+async function sendAIMessage(text) {
+  const box = document.getElementById('aiMsgs');
+  const loading = document.createElement('div');
+  loading.className = 'msg ai';
+  loading.textContent = 'جاري التفكير...';
+  box.appendChild(loading);
+  box.scrollTop = box.scrollHeight;
+
+  let reply = '';
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: 'أجب دائماً باللغة العربية وبأسلوب ودود ومبسط.' },
+          { role: 'user', content: text }
+        ],
+        model: 'openai'
+      })
+    });
+    reply = await res.text();
+  } catch {
+    reply = '⚠️ تحقق من اتصالك بالإنترنت ثم أعد المحاولة.';
+  }
+
+  loading.remove();
+  box.innerHTML += `<div class="msg me">${text}</div><div class="msg ai">${reply}</div>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+// مكالمات الفيديو
+const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
 document.getElementById('startCamBtn').onclick = async () => {
   try {
@@ -477,57 +536,107 @@ document.getElementById('startCamBtn').onclick = async () => {
     const vid = document.createElement('video');
     vid.srcObject = localStream; vid.autoplay = true; vid.muted = true;
     box.appendChild(vid);
-    document.getElementById('callStartBtn').style.display = 'inline-block';
-    showToast('✅ الكاميرا شغالة');
-  } catch (e) { alert('خطأ: ' + e.message); }
+    document.getElementById('callStatus').textContent = '✅ الكاميرا شغالة — اختر شخصاً من القائمة';
+    if (db) monitorIncomingCalls();
+  } catch (e) { alert('لم يتم السماح للكاميرا: ' + e.message); }
 };
 
-document.getElementById('callStartBtn').onclick = async () => {
-  const target = prompt('اكتب اسم الشخص للاتصال به:');
-  if (!target) return;
-  chatWith = target;
-
+document.getElementById('callBtn').onclick = async () => {
+  if (!callWithName) return alert('اختر شخصاً أولاً من القائمة');
+  if (!db) return alert('غير متصل بالإنترنت!');
+  
   peerConn = new RTCPeerConnection(rtcConfig);
   localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
   
   peerConn.ontrack = e => {
     const box = document.getElementById('remoteVideoBox');
+    box.style.display = 'block';
     box.innerHTML = '';
     const vid = document.createElement('video');
     vid.srcObject = e.streams[0]; vid.autoplay = true;
     box.appendChild(vid);
-    showNotify('مكالمة ✅', 'تم الاتصال');
   };
 
-  const callId = [userName, chatWith].sort().join('_');
-  callDoc = db.collection('calls').doc(callId);
   const offer = await peerConn.createOffer();
   await peerConn.setLocalDescription(offer);
-  await callDoc.set({ offer: peerConn.localDescription, from: userName, to: chatWith });
 
-  document.getElementById('callStartBtn').style.display = 'none';
-  document.getElementById('callEndBtn').style.display = 'inline-block';
-  showToast(`📞 جاري الاتصال بـ ${target}`);
+  const callId = [userName, callWithName].sort().join('_');
+  await db.collection('calls').doc(callId).set({
+    from: userName, to: callWithName,
+    offer: { type: offer.type, sdp: offer.sdp },
+    status: 'calling',
+    time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  document.getElementById('callBtn').style.display = 'none';
+  document.getElementById('endCallBtn').style.display = 'inline-block';
+  document.getElementById('callStatus').textContent = `📞 جاري الاتصال بـ ${callWithName}...`;
 };
 
-document.getElementById('callEndBtn').onclick = () => {
+function monitorIncomingCalls() {
+  if (!db) return;
+  db.collection('calls').where('to', '==', userName).onSnapshot(async snap => {
+    snap.forEach(async doc => {
+      const d = doc.data();
+      if (d.status === 'calling' && d.from !== userName && !incomingOffer) {
+        incomingOffer = d;
+        callWithName = d.from;
+        document.getElementById('answerBtn').style.display = 'inline-block';
+        document.getElementById('callStatus').textContent = `🔔 مكالمة واردة من ${d.from}!`;
+      }
+    });
+  });
+}
+
+document.getElementById('answerBtn').onclick = async () => {
+  if (!incomingOffer || !db) return;
+  
+  peerConn = new RTCPeerConnection(rtcConfig);
+  localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
+  
+  peerConn.ontrack = e => {
+    const box = document.getElementById('remoteVideoBox');
+    box.style.display = 'block';
+    box.innerHTML = '';
+    const vid = document.createElement('video');
+    vid.srcObject = e.streams[0]; vid.autoplay = true;
+    box.appendChild(vid);
+  };
+
+  await peerConn.setRemoteDescription(new RTCSessionDescription(incomingOffer.offer));
+  const answer = await peerConn.createAnswer();
+  await peerConn.setLocalDescription(answer);
+
+  const callId = [userName, callWithName].sort().join('_');
+  await db.collection('calls').doc(callId).update({
+    answer: { type: answer.type, sdp: answer.sdp },
+    status: 'connected'
+  });
+
+  document.getElementById('answerBtn').style.display = 'none';
+  document.getElementById('endCallBtn').style.display = 'inline-block';
+  document.getElementById('callStatus').textContent = '✅ متصل!';
+  incomingOffer = null;
+};
+
+document.getElementById('endCallBtn').onclick = async () => {
   if (peerConn) peerConn.close();
   if (localStream) localStream.getTracks().forEach(t => t.stop());
-  if (callDoc) callDoc.delete().catch(()=>{});
-  peerConn = null; localStream = null; callDoc = null;
-  document.getElementById('localVideoBox').innerHTML = 'كاميرتك';
-  document.getElementById('remoteVideoBox').innerHTML = 'كاميرا الطرف الآخر';
-  document.getElementById('callStartBtn').style.display = 'inline-block';
-  document.getElementById('callEndBtn').style.display = 'none';
-  showToast('✅ تم إنهاء المكالمة');
+  if (db && callWithName) {
+    const callId = [userName, callWithName].sort().join('_');
+    await db.collection('calls').doc(callId).delete().catch(()=>{});
+  }
+  peerConn = null; localStream = null; callWithName = null; incomingOffer = null;
+  
+  document.getElementById('remoteVideoBox').style.display = 'none';
+  document.getElementById('endCallBtn').style.display = 'none';
+  document.getElementById('callBtn').style.display = 'inline-block';
+  document.getElementById('callStatus').textContent = '✅ تم إنهاء المكالمة';
 };
 
-function startAutoRefresh() {
-  setInterval(() => {
-    if (currentPage === 'public') loadPublicMessages();
-    if (currentPage === 'private' && chatWith) loadChatMessages();
-  }, 2000);
-}
+setInterval(() => {
+  if (currentMode === 'online' && db && currentPage === 'public') loadPublicMessages();
+}, 3000);
 </script>
 </body>
 </html>
