@@ -13,43 +13,56 @@
       --bg:#0f1b2b;--card:#1a2c47;--card-hover:#24345c;
       --text:#ffffff;--text-desc:#a0b4cc;
       --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
-      --offline:#4b5563;--accent:#00d4ff;--purple:#a855f7
+      --offline:#4b5563;--accent:#00d4ff;--purple:#a855f7;
+      --gold:#f59e0b;--key-gradient:linear-gradient(135deg,#f59e0b,#facc15)
     }
-    body{background:var(--bg);color:var(--text);min-height:100vh;padding:1rem}
+    body{background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
 
-    .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:2rem}
+    .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;padding:2rem}
     .start-screen.hidden{display:none}
     .app-title{font-size:2rem;font-weight:bold;margin-bottom:.5rem}
     .status-msg{color:var(--text-desc);margin-bottom:1.5rem;font-size:.9rem}
     .input{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
     .btn{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;background:var(--blue);color:white;transition:.2s}
     .btn:hover{transform:scale(1.02)}
-    .btn-small{width:auto;padding:.6rem 1.2rem;font-size:.9rem;border-radius:.5rem}
 
-    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding:.5rem 0}
-    .mode-buttons{display:flex;gap:.75rem}
-    .mode-btn{padding:.5rem 1rem;border-radius:2rem;font-size:.9rem;font-weight:500;border:none;cursor:pointer;transition:.2s}
-    .mode-btn.active.online{background:rgba(34,197,94,.15);color:var(--green);border:1px solid var(--green)}
-    .mode-btn.active.local{background:rgba(255,152,0,.15);color:#ff9800;border:1px solid #ff9800}
-    .mode-btn.inactive{background:transparent;color:var(--text-desc);border:1px solid transparent;opacity:.6}
-    .app-name{font-size:1.4rem;font-weight:bold;color:var(--accent)}
+    .top-bar{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);position:sticky;top:0;z-index:100}
+    .mode-switch{display:flex;gap:.5rem}
+    .mode-btn{padding:.4rem 1rem;border-radius:2rem;font-size:.85rem;font-weight:500;border:none;cursor:pointer;transition:.2s}
+    .mode-btn.online{background:rgba(34,197,94,.15);color:var(--green);border:1px solid var(--green)}
+    .mode-btn.local{background:rgba(75,85,99,.15);color:var(--offline);border:1px solid var(--offline)}
+    .mode-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:.4rem}
+    .mode-dot.online{background:var(--green)}
+    .mode-dot.local{background:var(--offline)}
+    .app-name{font-size:1.3rem;font-weight:bold;color:var(--accent)}
 
-    .welcome{text-align:center;margin-bottom:2rem}
-    .welcome h1{font-size:1.5rem;margin-bottom:.5rem}
+    .nav-bar{display:flex;justify-content:space-around;align-items:center;padding:.75rem 0;background:var(--card);position:fixed;bottom:0;left:0;right:0;z-index:100;border-top:1px solid #2a3a5a}
+    .nav-btn{display:flex;flex-direction:column;align-items:center;gap:.2rem;background:transparent;border:none;color:var(--text-desc);cursor:pointer;transition:.2s}
+    .nav-btn.active{color:var(--accent)}
+    .nav-btn span{font-size:.75rem}
+    .nav-icon{font-size:1.3rem}
+
+    .container{padding:1rem}
+    .welcome{text-align:center;margin:1.5rem 0}
+    .welcome h1{font-size:1.4rem;margin-bottom:.3rem}
     .welcome p{color:var(--text-desc)}
 
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;max-width:500px;margin:0 auto}
-    .main-btn{background:var(--card);border:none;border-radius:1rem;padding:2rem 1rem;color:var(--text);cursor:pointer;transition:.2s;text-align:center}
-    .main-btn:hover{background:var(--card-hover);transform:translateY(-3px)}
-    .main-btn .icon{font-size:2rem;margin-bottom:.8rem;display:block}
-    .main-btn .label{font-size:1rem;font-weight:500}
+    .main-card{background:var(--card);border:none;border-radius:1rem;padding:2rem 1rem;color:var(--text);cursor:pointer;transition:.2s;text-align:center;position:relative;overflow:hidden}
+    .main-card:hover{background:var(--card-hover);transform:translateY(-2px)}
+    .card-icon{font-size:2rem;margin-bottom:.5rem;display:block}
+    .card-label{font-size:1rem;font-weight:500}
+    
+    /* أيقونة المفتاح بجانب الذكاء */
+    .key-badge{position:absolute;top:.5rem;right:.5rem;background:var(--key-gradient);color:#000;font-size:1rem;padding:.2rem .4rem;border-radius:.5rem;font-weight:bold;animation:pulse 2s infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 rgba(245,158,11,.4)}50%{box-shadow:0 0 10px rgba(245,158,11,.7)}100%{box-shadow:0 0 0 rgba(245,158,11,.4)}}
 
-    .page{display:none;padding:1rem 0}
+    .page{display:none;padding:1rem}
     .page.active{display:block}
-    .page-title{font-size:1.3rem;font-weight:bold;margin-bottom:1rem;text-align:center}
+    .page-title{font-size:1.3rem;font-weight:bold;margin-bottom:1rem;text-align:center;display:flex;align-items:center;justify-content:center;gap:.5rem}
     .back-btn{background:transparent;border:none;color:var(--accent);font-size:1rem;cursor:pointer;margin-bottom:1rem;display:inline-flex;align-items:center;gap:.5rem}
 
-    .users-list{max-height:45vh;overflow-y:auto;margin-bottom:1rem}
+    .users-list{max-height:55vh;overflow-y:auto;margin-bottom:1rem}
     .user-item{background:var(--card);padding:1rem 1.2rem;border-radius:.8rem;margin:.5rem 0;cursor:pointer;transition:.2s;display:flex;justify-content:space-between;align-items:center}
     .user-item:hover{background:var(--card-hover)}
     .user-name{font-weight:500;font-size:1rem}
@@ -58,32 +71,39 @@
     .status-dot.offline{background:var(--offline)}
     .status-text{font-size:.85rem}
 
-    .messages{max-height:50vh;overflow-y:auto;margin-bottom:1rem}
-    .msg{background:var(--card);padding:.9rem 1.1rem;border-radius:1rem;margin:.5rem 0;max-width:85%;line-height:1.5}
+    .messages{max-height:50vh;overflow-y:auto;margin-bottom:5rem}
+    .msg{background:var(--card);padding:.9rem 1.1rem;border-radius:1rem;margin:.5rem 0;max-width:90%;line-height:1.6;white-space:pre-wrap}
     .msg.me{margin-left:auto;background:var(--blue)}
     .msg.other{margin-right:auto}
-    .msg.ai{background:linear-gradient(135deg,var(--purple),var(--accent));margin-right:auto}
+    .msg.ai{background:linear-gradient(135deg,var(--purple),var(--accent));margin-right:auto;border-left:3px solid var(--gold)}
     .msg-time{font-size:.75rem;opacity:.6;margin-top:.4rem;display:block}
     .msg-del{float:left;background:var(--red);border:none;color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;margin-right:.5rem;opacity:0;transition:.2s}
     .msg:hover .msg-del{opacity:1}
+    
+    /* تنسيق الكود في إجابات الذكاء */
+    .msg pre{background:rgba(0,0,0,.4);padding:.8rem;border-radius:.5rem;margin:.5rem 0;overflow-x:auto}
+    .msg code{background:rgba(0,0,0,.3);padding:.15rem .4rem;border-radius:.3rem;font-family:monospace;font-size:.9rem}
 
-    .input-bar{display:flex;gap:.5rem;align-items:center;position:fixed;bottom:1rem;left:1rem;right:1rem;max-width:500px;margin:0 auto}
+    .input-bar{display:flex;gap:.5rem;align-items:center;position:fixed;bottom:70px;left:1rem;right:1rem;max-width:500px;margin:0 auto}
     .input-bar .input{margin:0;flex:1;background:var(--card)}
     .send-btn{padding:1rem 1.5rem;border:none;border-radius:.75rem;background:var(--green);color:white;font-weight:bold;cursor:pointer}
+    .search-mode-bar{display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
+    .mode-tag{padding:.4rem .8rem;border-radius:1rem;font-size:.8rem;border:none;cursor:pointer;opacity:.7}
+    .mode-tag.active{opacity:1;box-shadow:0 0 0 2px var(--gold)}
 
     .video-box{background:#000;border-radius:1rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem 0;overflow:hidden}
     video{width:100%;height:100%;object-fit:cover}
     .call-buttons{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
-    .btn-red{background:var(--red)}
-    .btn-green{background:var(--green)}
-    .btn-orange{background:#ff9800}
+    .btn-small{padding:.6rem 1.2rem;font-size:.9rem;border-radius:.5rem;border:none;cursor:pointer;font-weight:bold}
+    .btn-red{background:var(--red);color:white}
+    .btn-green{background:var(--green);color:white}
+    .btn-orange{background:#ff9800;color:white}
 
-    .toast{position:fixed;top:1rem;right:1rem;background:var(--green);color:white;padding:.9rem 1.2rem;border-radius:.75rem;z-index:999;display:none;box-shadow:0 4px 15px rgba(0,0,0,.3)}
+    .toast{position:fixed;top:4rem;right:1rem;background:var(--green);color:white;padding:.9rem 1.2rem;border-radius:.75rem;z-index:200;display:none;box-shadow:0 4px 15px rgba(0,0,0,.3)}
     .toast.show{display:block}
     .toast.err{background:var(--red)}
     .toast.warn{background:#ff9800}
 
-    .refresh-note{text-align:center;font-size:.8rem;color:var(--text-desc);margin-top:1rem}
     .hidden{display:none!important}
   </style>
 </head>
@@ -91,7 +111,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- شاشة البداية — بدون كلمة مرور ✅ -->
 <div class="start-screen" id="startScreen">
   <h1 class="app-title">Tawasol 🤝</h1>
   <p class="status-msg" id="statusMsg">جاري التحقق... ⏳</p>
@@ -99,97 +118,131 @@
   <button id="startBtn" class="btn">✅ ابدأ الاستخدام</button>
 </div>
 
-<!-- الشاشة الرئيسية -->
 <div id="mainApp" class="hidden">
-  <div class="header">
-    <div class="mode-buttons">
-      <button class="mode-btn active online" id="onlineBtn">🌐 الإنترنت</button>
-      <button class="mode-btn inactive" id="localBtn">📍 محلي</button>
+  <div class="top-bar">
+    <div class="mode-switch">
+      <button class="mode-btn local" id="localBtn">
+        محلي <span class="mode-dot local"></span>
+      </button>
+      <button class="mode-btn online" id="onlineBtn">
+        الإنترنت <span class="mode-dot online"></span>
+      </button>
     </div>
     <div class="app-name">Tawasol 🤝</div>
   </div>
 
-  <div class="welcome">
-    <h1>أهلاً بك يا <span id="userNameDisplay"></span> 👋</h1>
-    <p id="modeDesc">الوضع: متصل بالإنترنت — جاهز ✅</p>
-  </div>
-
-  <div class="grid" id="mainGrid">
-    <button class="main-btn" data-page="private">
-      <span class="icon">💬</span>
-      <span class="label">رسائل خاصة</span>
+  <div class="nav-bar">
+    <button class="nav-btn active" data-page="home">
+      <span class="nav-icon">🏠</span>
+      <span>الرئيسية</span>
     </button>
-    <button class="main-btn" data-page="public">
-      <span class="icon">📢</span>
-      <span class="label">الرسائل العامة</span>
+    <button class="nav-btn" data-page="private">
+      <span class="nav-icon">💬</span>
+      <span>خاص</span>
     </button>
-    <button class="main-btn" data-page="ai">
-      <span class="icon">🤖</span>
-      <span class="label">المساعد الذكي</span>
+    <button class="nav-btn" data-page="public">
+      <span class="nav-icon">📢</span>
+      <span>العام</span>
     </button>
-    <button class="main-btn" data-page="call">
-      <span class="icon">🎥</span>
-      <span class="label">مكالمة فيديو</span>
+    <button class="nav-btn" data-page="ai">
+      <span class="nav-icon">🤖</span>
+      <span>المساعد</span>
+    </button>
+    <button class="nav-btn" data-page="call">
+      <span class="nav-icon">📹</span>
+      <span>فيديو</span>
     </button>
   </div>
 
-  <!-- رسائل خاصة -->
-  <div class="page" id="pagePrivate">
-    <button class="back-btn" data-back="main">← رجوع</button>
-    <h2 class="page-title">💬 الرسائل الخاصة</h2>
-    <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً لمراسلته:</p>
-    <div class="users-list" id="usersList">
-      <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
+  <div class="container">
+    <div class="page active" id="page-home">
+      <div class="welcome">
+        <h1>👋 أهلاً بك يا <span id="userNameDisplay"></span></h1>
+        <p id="modeDesc">الوضع: بالإتصال بالإنترنت 🌐</p>
+      </div>
+      <div class="grid">
+        <button class="main-card" data-goto="private">
+          <span class="card-icon">💬</span>
+          <span class="card-label">رسائل خاصة</span>
+        </button>
+        <button class="main-card" data-goto="public">
+          <span class="card-icon">📢</span>
+          <span class="card-label">الرسائل العامة</span>
+        </button>
+        <button class="main-card" data-goto="ai">
+          <span class="card-icon">🤖</span>
+          <span class="card-label">المساعد الذكي</span>
+          <span class="key-badge">🔑</span>
+        </button>
+        <button class="main-card" data-goto="call">
+          <span class="card-icon">📹</span>
+          <span class="card-label">مكالمة فيديو</span>
+        </button>
+      </div>
     </div>
-    <div id="chatArea" class="hidden">
-      <p style="text-align:center;margin:1rem 0;color:var(--accent)">محادثة مع: <strong id="chatWithName"></strong></p>
-      <div class="messages" id="privateChat"></div>
+
+    <div class="page" id="page-private">
+      <button class="back-btn" data-back="home">← رجوع</button>
+      <h2 class="page-title">💬 الرسائل الخاصة</h2>
+      <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً لمراسلته:</p>
+      <div class="users-list" id="usersList">
+        <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
+      </div>
+      <div id="chatArea" class="hidden">
+        <p style="text-align:center;margin:1rem 0;color:var(--accent)">محادثة مع: <strong id="chatWithName"></strong></p>
+        <div class="messages" id="privateChat"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-public">
+      <button class="back-btn" data-back="home">← رجوع</button>
+      <h2 class="page-title">📢 الرسائل العامة</h2>
+      <div class="messages" id="publicMsgs"></div>
+    </div>
+
+    <div class="page" id="page-ai">
+      <button class="back-btn" data-back="home">← رجوع</button>
+      <h2 class="page-title">
+        🤖 المساعد الذكي
+        <span style="background:var(--key-gradient);color:#000;padding:.2rem .6rem;border-radius:.5rem;font-size:.9rem">🔑 مفتاح المعرفة</span>
+      </h2>
+      <p style="text-align:center;color:var(--gold);margin-bottom:.5rem">✅ متصل بمصادر المعرفة — جوجل + ذكاء اصطناعي متقدم</p>
+      <p style="text-align:center;color:var(--text-desc);font-size:.85rem;margin-bottom:1rem">أسألني أي شيء: معلومات، أكواد برمجية، شرح، دروس، حلول</p>
+      
+      <div class="search-mode-bar">
+        <button class="mode-tag active" data-aimode="general">🧠 عام</button>
+        <button class="mode-tag" data-aimode="code">💻 أكواد</button>
+        <button class="mode-tag" data-aimode="search">🔍 بحث في النت</button>
+      </div>
+      
+      <div class="messages" id="aiMsgs">
+        <div class="msg ai">أهلاً بك! أنا المساعد الذكي المتقدم 🤖🔑<br><br>أستطيع: <br>✅ الإجابة على أي سؤال من مصادر موثوقة<br>✅ كتابة وتصليح الأكواد البرمجية<br>✅ البحث في الإنترنت وجلب أحدث المعلومات<br>✅ شرح المواضيع بطريقة مبسطة<br><br>اكتب لي ما تريد وسأجيبك فوراً 💡</div>
+      </div>
+    </div>
+
+    <div class="page" id="page-call">
+      <button class="back-btn" data-back="home">← رجوع</button>
+      <h2 class="page-title">📹 مكالمة فيديو</h2>
+      <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً للإتصال به:</p>
+      <div class="users-list" id="callUsersList">
+        <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
+      </div>
+      <div class="video-box" id="localVideoBox">كاميرتك — اضغط لتشغيل</div>
+      <div class="video-box" id="remoteVideoBox" style="display:none">كاميرا الطرف الآخر</div>
+      <div class="call-buttons">
+        <button class="btn-small btn-green" id="startCamBtn">📷 تشغيل الكاميرا</button>
+        <button class="btn-small btn-green" id="callBtn" style="display:none">📞 إتصال</button>
+        <button class="btn-small btn-orange" id="answerBtn" style="display:none">✅ إستلام</button>
+        <button class="btn-small btn-red" id="endCallBtn" style="display:none">❌ إنهاء</button>
+      </div>
+      <p id="callStatus" style="text-align:center;margin-top:1rem;color:var(--text-desc)">جاهز للإتصال</p>
     </div>
   </div>
 
-  <!-- رسائل عامة -->
-  <div class="page" id="pagePublic">
-    <button class="back-btn" data-back="main">← رجوع</button>
-    <h2 class="page-title">📢 الرسائل العامة</h2>
-    <div class="messages" id="publicMsgs"></div>
+  <div class="input-bar" id="inputBar" class="hidden">
+    <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
+    <button class="send-btn" id="sendBtn">إرسال</button>
   </div>
-
-  <!-- ذكاء اصطناعي -->
-  <div class="page" id="pageAI">
-    <button class="back-btn" data-back="main">← رجوع</button>
-    <h2 class="page-title">🤖 المساعد الذكي</h2>
-    <p style="text-align:center;color:var(--green);margin-bottom:1rem">✅ جاهز — بلا أي مفتاح!</p>
-    <div class="messages" id="aiMsgs">
-      <div class="msg ai">أهلاً بك! اسألني أي سؤال وسأجيبك فوراً 😊</div>
-    </div>
-  </div>
-
-  <!-- مكالمة فيديو -->
-  <div class="page" id="pageCall">
-    <button class="back-btn" data-back="main">← رجوع</button>
-    <h2 class="page-title">🎥 مكالمة فيديو</h2>
-    <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً للاتصال به:</p>
-    <div class="users-list" id="callUsersList">
-      <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
-    </div>
-    <div class="video-box" id="localVideoBox">كاميرتك — اضغط لتشغيل</div>
-    <div class="video-box" id="remoteVideoBox" style="display:none">كاميرا الطرف الآخر</div>
-    <div class="call-buttons">
-      <button class="btn btn-small" id="startCamBtn">📷 تشغيل الكاميرا</button>
-      <button class="btn btn-green btn-small" id="callBtn" style="display:none">📞 اتصل</button>
-      <button class="btn btn-orange btn-small" id="answerBtn" style="display:none">✅ استلام</button>
-      <button class="btn btn-red btn-small" id="endCallBtn" style="display:none">❌ إنهاء</button>
-    </div>
-    <p id="callStatus" style="text-align:center;margin-top:1rem;color:var(--text-desc)">جاهز للمكالمة</p>
-  </div>
-
-  <p class="refresh-note">⚡ تحديث تلقائي كل 3 ثوانٍ</p>
-</div>
-
-<!-- شريط الكتابة -->
-<div class="input-bar" id="inputBar" class="hidden">
-  <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
-  <button class="send-btn" id="sendBtn">إرسال</button>
 </div>
 
 <script>
@@ -203,10 +256,11 @@ let db = null;
 let currentMode = 'online';
 let userId = '';
 let userName = '';
-let currentPage = 'main';
+let currentPage = 'home';
 let chatWith = null;
 let localStream = null, peerConn = null;
 let incomingOffer = null, callWithName = null;
+let aiMode = 'general';
 
 const localData = {
   get(key) { try { return JSON.parse(localStorage.getItem('tawasol_' + key)) } catch { return null } },
@@ -238,16 +292,16 @@ initDB();
 
 document.getElementById('onlineBtn').onclick = () => {
   currentMode = 'online';
-  document.getElementById('onlineBtn').className = 'mode-btn active online';
-  document.getElementById('localBtn').className = 'mode-btn inactive';
-  document.getElementById('modeDesc').textContent = 'الوضع: متصل بالإنترنت — جاهز ✅';
+  document.getElementById('onlineBtn').style.opacity = '1';
+  document.getElementById('localBtn').style.opacity = '.6';
+  document.getElementById('modeDesc').textContent = 'الوضع: بالإتصال بالإنترنت 🌐';
   if (db) { loadPublicMessages(); loadUsersList(); loadCallUsersList(); }
 };
 document.getElementById('localBtn').onclick = () => {
   currentMode = 'local';
-  document.getElementById('localBtn').className = 'mode-btn active';
-  document.getElementById('onlineBtn').className = 'mode-btn inactive';
-  document.getElementById('modeDesc').textContent = 'الوضع: محلي — بلا إنترنت 📍';
+  document.getElementById('localBtn').style.opacity = '1';
+  document.getElementById('onlineBtn').style.opacity = '.6';
+  document.getElementById('modeDesc').textContent = 'الوضع: محلي — بدون إنترنت 📍';
   loadLocalMessages();
 };
 
@@ -255,7 +309,6 @@ function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
-// الدخول بدون كلمة مرور ✅
 document.getElementById('startBtn').onclick = async () => {
   const n = document.getElementById('nameInput').value.trim();
   if (!n) return alert('اكتب اسمك أولاً!');
@@ -286,7 +339,44 @@ document.getElementById('startBtn').onclick = async () => {
   }
 };
 
-// قائمة المستخدمين مع نقاط الحالة ✅
+document.querySelectorAll('.mode-tag').forEach(tag => {
+  tag.onclick = () => {
+    document.querySelectorAll('.mode-tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+    aiMode = tag.dataset.aimode;
+  };
+});
+
+function goToPage(pageName) {
+  currentPage = pageName;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${pageName}`).classList.add('active');
+  
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-page="${pageName}"]`)?.classList.add('active');
+  
+  const inputBar = document.getElementById('inputBar');
+  if (['private','public','ai'].includes(pageName) && (pageName !== 'private' || chatWith)) {
+    inputBar.classList.remove('hidden');
+  } else {
+    inputBar.classList.add('hidden');
+  }
+  
+  if (pageName === 'public' && db) loadPublicMessages();
+  if (pageName === 'private') { chatWith = null; document.getElementById('chatArea').classList.add('hidden'); if(db) loadUsersList(); }
+  if (pageName === 'call' && db) loadCallUsersList();
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.onclick = () => goToPage(btn.dataset.page);
+});
+document.querySelectorAll('.main-card').forEach(btn => {
+  btn.onclick = () => goToPage(btn.dataset.goto);
+});
+document.querySelectorAll('.back-btn').forEach(btn => {
+  btn.onclick = () => goToPage(btn.dataset.back || 'home');
+});
+
 function loadUsersList() {
   if (!db) return;
   db.collection('users').orderBy('lastSeen', 'desc').limit(50)
@@ -347,10 +437,10 @@ function loadCallUsersList() {
         item.onclick = () => {
           callWithName = u.name;
           if (localStream) {
-            document.getElementById('callStatus').textContent = `تم اختيار: ${u.name} — اضغط «اتصل»`;
+            document.getElementById('callStatus').textContent = `تم الإختيار: ${u.name} — إضغط إتصال`;
             document.getElementById('callBtn').style.display = 'inline-block';
           } else {
-            alert('شغّل الكاميرا أولاً من الزر فوق 📷');
+            alert('شغل الكاميرا أولاً من الزر أعلاه 📷');
           }
         };
         list.appendChild(item);
@@ -369,24 +459,6 @@ function openChatWith(name) {
   document.getElementById('privateChat').innerHTML = '';
   if (db) loadPrivateMessages();
 }
-
-document.querySelectorAll('.main-btn').forEach(btn => {
-  btn.onclick = () => {
-    currentPage = btn.dataset.page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page${currentPage.charAt(0).toUpperCase()+currentPage.slice(1)}`).classList.add('active');
-    document.getElementById('inputBar').classList.add('hidden');
-
-    if (currentPage === 'private') {
-      document.getElementById('chatArea').classList.add('hidden');
-      chatWith = null;
-      if (db) loadUsersList();
-    }
-    if (currentPage === 'call' && db) loadCallUsersList();
-    if (currentPage === 'public' && db) loadPublicMessages();
-    if (currentPage === 'ai') document.getElementById('inputBar').classList.remove('hidden');
-  };
-});
 
 function loadPublicMessages() {
   if (!db) return;
@@ -496,32 +568,70 @@ async function sendMessage() {
 
 async function sendAIMessage(text) {
   const box = document.getElementById('aiMsgs');
+  
+  // رسالة المستخدم
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg me';
+  userMsg.textContent = text;
+  box.appendChild(userMsg);
+  
+  // حالة التحميل
   const loading = document.createElement('div');
   loading.className = 'msg ai';
-  loading.textContent = 'جاري التفكير...';
+  loading.innerHTML = '🤖🔑 <em>جاري البحث في المصادر وتوليد الإجابة...</em>';
   box.appendChild(loading);
   box.scrollTop = box.scrollHeight;
 
+  // بناء التعليمات حسب الوضع
+  let systemPrompt = '';
+  if (aiMode === 'code') {
+    systemPrompt = `أنت مبرمج خبير ومتخصص في كتابة الأكواد البرمجية عالية الجودة. 
+أكتب الأكواد كاملة، مشروحة، وتعمل مباشرة. استخدم علامات <code> و <pre> لتنسيق الكود.
+أجب دائماً باللغة العربية. اشرح الكود خطوة بخطوة واذكر كيفية تشغيله.`;
+  } else if (aiMode === 'search') {
+    systemPrompt = `أنت باحث ذكي ومصدر معلومات موثوق. قدم إجابات دقيقة وحديثة كأنك تبحث في جوجل.
+اذكر المصادر والمراجع إن أمكن. أجب باللغة العربية وبأسلوب واضح ومبسط.`;
+  } else {
+    systemPrompt = `أنت مساعد ذكي متقدم ومصدر المعرفة 🤖🔑.
+تجيب على أي سؤال من جميع المجالات: علوم، تقنية، برمجة، تاريخ، معلومات عامة، دروس، حلول.
+أجب دائماً باللغة العربية وبأسلوب ودود ومبسط وواضح.
+عند كتابة أكواد، استخدم تنسيق واضح واشرح كيفية استخدامها.
+اذكر المعلومات بدقة واذكر المصادر الموثوقة عند الإمكان.`;
+  }
+
   let reply = '';
   try {
+    // ربط بـ Pollinations.ai — مجاني وبدون مفتاح
     const res = await fetch('https://text.pollinations.ai/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [
-          { role: 'system', content: 'أجب دائماً باللغة العربية وبأسلوب ودود ومبسط.' },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
         ],
-        model: 'openai'
+        model: 'openai',
+        seed: Math.floor(Math.random() * 10000)
       })
     });
+    
+    if (!res.ok) throw new Error('خطأ في الاتصال');
     reply = await res.text();
-  } catch {
-    reply = '⚠️ تحقق من اتصالك بالإنترنت ثم أعد المحاولة.';
+    
+    // تنظيف النص
+    reply = reply.trim();
+    if (!reply) throw new Error('إجابة فارغة');
+    
+  } catch (err) {
+    reply = `⚠️ تعذر الاتصال بالمصدر\n\nالأسباب الممكنة:\n• انقطاع في الإنترنت\n• المصدر مشغول حالياً\n\n✅ الحل: حاول مرة أخرى بعد دقائق، أو تحقق من اتصالك بالإنترنت.`;
   }
 
+  // عرض الإجابة
   loading.remove();
-  box.innerHTML += `<div class="msg me">${text}</div><div class="msg ai">${reply}</div>`;
+  const aiMsg = document.createElement('div');
+  aiMsg.className = 'msg ai';
+  aiMsg.innerHTML = `🤖🔑 ${reply.replace(/\n/g, '<br>')}`;
+  box.appendChild(aiMsg);
   box.scrollTop = box.scrollHeight;
 }
 
@@ -536,13 +646,13 @@ document.getElementById('startCamBtn').onclick = async () => {
     const vid = document.createElement('video');
     vid.srcObject = localStream; vid.autoplay = true; vid.muted = true;
     box.appendChild(vid);
-    document.getElementById('callStatus').textContent = '✅ الكاميرا شغالة — اختر شخصاً من القائمة';
+    document.getElementById('callStatus').textContent = '✅ الكاميرا شغالة — إختر شخصاً من القائمة';
     if (db) monitorIncomingCalls();
   } catch (e) { alert('لم يتم السماح للكاميرا: ' + e.message); }
 };
 
 document.getElementById('callBtn').onclick = async () => {
-  if (!callWithName) return alert('اختر شخصاً أولاً من القائمة');
+  if (!callWithName) return alert('إختر شخصاً أولاً من القائمة');
   if (!db) return alert('غير متصل بالإنترنت!');
   
   peerConn = new RTCPeerConnection(rtcConfig);
@@ -570,7 +680,7 @@ document.getElementById('callBtn').onclick = async () => {
 
   document.getElementById('callBtn').style.display = 'none';
   document.getElementById('endCallBtn').style.display = 'inline-block';
-  document.getElementById('callStatus').textContent = `📞 جاري الاتصال بـ ${callWithName}...`;
+  document.getElementById('callStatus').textContent = `📞 جاري الإتصال بـ ${callWithName}...`;
 };
 
 function monitorIncomingCalls() {
