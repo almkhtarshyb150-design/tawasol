@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -9,63 +10,123 @@
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    :root{--bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--ai:#a855f7}
-    body{background:var(--bg);color:var(--text);min-height:100vh}
-    .screen{display:none;padding:1rem;max-width:500px;margin:0 auto}
-    .screen.active{display:block}
-    .start-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem}
+    :root{--bg:#0f1b2b;--card:#1a2c42;--input-bg:#24344d;--text:#e6edf3;--blue:#3b82f6;--green:#22c55e;--ai:#a855f7;--red:#ef4444}
+    html,body{height:100%;overflow:hidden}
+    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+    /* شاشة البداية */
+    .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:2rem}
+    .start-screen.hidden{display:none}
     .app-title{font-size:2.2rem;font-weight:bold;margin-bottom:.5rem}
-    .app-desc{opacity:.7;margin-bottom:2rem}
-    .input{width:100%;padding:.9rem 1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
-    .btn{width:100%;padding:.9rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;margin:.5rem 0;transition:.2s}
+    .app-desc{opacity:.7;margin-bottom:1.5rem}
+    .input{width:100%;max-width:400px;padding:.9rem 1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
+    .btn{width:100%;max-width:400px;padding:.9rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;transition:.2s}
     .btn-primary{background:var(--blue);color:white}
     .btn-primary:hover{opacity:.9}
-    .nav-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:.75rem 0;z-index:100}
-    .nav-btn{background:transparent;border:none;color:var(--text);font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:.25rem;opacity:.6}
+    .btn-sm{max-width:150px;padding:.6rem;font-size:.9rem;margin:.5rem .25rem}
+
+    /* الصفحات */
+    .page{display:none;flex:1;flex-direction:column;height:100%}
+    .page.active{display:flex}
+    .page-header{padding:1rem;text-align:center;background:var(--card);font-size:1.3rem;font-weight:bold;flex-shrink:0}
+    .messages{flex:1;overflow-y:auto;padding:1rem}
+    .msg{background:var(--card);padding:.75rem 1rem;border-radius:1.2rem;margin:.4rem 0;max-width:82%;line-height:1.5}
+    .msg.me{margin-left:auto;background:var(--blue)}
+    .msg.ai{background:var(--ai);color:white;margin-right:auto}
+    .msg.loading{opacity:.7;font-style:italic}
+
+    /* شريط الكتابة */
+    .input-bar{display:flex;gap:.5rem;padding:.75rem;background:var(--card);flex-shrink:0}
+    .input-bar .input{margin:0;flex:1;background:var(--input-bg)}
+    .send-btn{width:auto;padding:.9rem 1.2rem;border:none;border-radius:.75rem;background:var(--green);color:white;font-weight:bold;cursor:pointer;flex-shrink:0}
+
+    /* شريط التنقل */
+    .nav{display:flex;justify-content:space-around;padding:.6rem;background:var(--card);flex-shrink:0}
+    .nav-btn{background:transparent;border:none;color:var(--text);opacity:.6;padding:.5rem;display:flex;flex-direction:column;align-items:center;gap:.1rem;font-size:.7rem}
     .nav-btn.active{opacity:1;color:var(--blue)}
-    .page-title{font-size:1.4rem;font-weight:bold;margin:1rem 0}
-    .message{background:var(--card);padding:.75rem 1rem;border-radius:1rem;margin:.5rem 0;max-width:85%}
-    .message.me{margin-left:auto;background:var(--blue)}
-    .input-area{position:fixed;bottom:4rem;left:0;right:0;padding:.75rem;background:var(--card);display:flex;gap:.5rem;max-width:500px;margin:0 auto}
-    .input-area .input{margin:0;flex:1}
-    .video-box{background:var(--card);border-radius:1rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem 0}
-    video{width:100%;height:100%;border-radius:1rem;object-fit:cover}
-    .status{text-align:center;padding:.5rem;border-radius:.5rem;margin:.5rem 0}
+
+    /* مكالمات */
+    .video-area{padding:1rem;text-align:center}
+    .video-box{background:#000;border-radius:.8rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem auto;max-width:500px;overflow:hidden}
+    video{width:100%;height:100%;object-fit:cover}
+    .status{padding:.6rem;border-radius:.5rem;margin:.5rem 0}
     .status.info{background:#3b82f622}
+    .status.success{background:#22c55e22}
+    .status.warn{background:#ff980022}
+
+    /* إعداد المفتاح */
+    .key-setup{background:#2a3b5c;padding:1rem;border-radius:.75rem;margin-bottom:1rem}
+    .key-setup p{font-size:.9rem;opacity:.8;margin-bottom:.5rem}
+    .key-setup a{color:var(--blue)}
   </style>
 </head>
 <body>
 
-<!-- شاشة البداية — باسم فقط بلا صورة -->
-<div id="startScreen" class="screen active start-screen">
+<!-- شاشة البداية -->
+<div class="start-screen" id="startScreen">
   <h1 class="app-title">تواصل 🤝</h1>
-  <p class="app-desc">رسائل • مكالمات • ذكاء اصطناعي</p>
+  <p class="app-desc">رسائل • صوت • فيديو • ذكاء اصطناعي من جوجل</p>
+  
+  <!-- مفتاح جوجل -->
+  <div class="key-setup" id="keySetupBox">
+    <p>🔑 أدخل مفتاح الذكاء الاصطناعي من جوجل:</p>
+    <input type="password" id="apiKeyInput" class="input" placeholder="مفتاح Gemini من جوجل...">
+    <p style="font-size:.8rem">كيف تجلب المفتاح؟ اذهب لموقع <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → أنشئ مفتاحاً مجانياً ✅</p>
+    <button id="saveKeyBtn" class="btn btn-primary btn-sm">✅ حفظ المفتاح</button>
+  </div>
+  
   <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك هنا...">
-  <button id="startBtn" class="btn btn-primary">✅ ابدأ الاستخدام</button>
+  <button id="startBtn" class="btn btn-primary" style="display:none">✅ ابدأ الاستخدام</button>
 </div>
 
-<!-- الصفحة الرئيسية -->
-<div id="mainScreen" class="screen">
-  <h2 class="page-title" id="pageTitle">الرسائل العامة</h2>
-  <div id="contentArea" style="padding-bottom:5rem"></div>
+<!-- صفحة الرسائل العامة -->
+<div class="page" id="pagePublic">
+  <div class="page-header">💬 الرسائل العامة</div>
+  <div class="messages" id="publicMsgs"></div>
 </div>
 
-<!-- شريط التنقل في الأسفل -->
-<nav class="nav-bar" id="navBar" style="display:none">
+<!-- صفحة الخاصة -->
+<div class="page" id="pagePrivate">
+  <div class="page-header">👤 رسائل خاصة</div>
+  <div class="messages" id="privateMsgs">
+    <div class="msg">اكتب: اسم الشخص: رسالتك</div>
+  </div>
+</div>
+
+<!-- صفحة المكالمات -->
+<div class="page" id="pageCall">
+  <div class="page-header">📞 المكالمات</div>
+  <div class="video-area">
+    <div class="status info" id="callStatus">جاهز للمكالمة</div>
+    <div class="video-box" id="localVideoBox">كاميرتك — اضغط لتشغيل</div>
+    <button class="btn btn-primary" id="startCamBtn">📷 تشغيل الكاميرا والصوت</button>
+  </div>
+</div>
+
+<!-- صفحة الذكاء الاصطناعي من جوجل -->
+<div class="page" id="pageAI">
+  <div class="page-header">🤖 ذكاء جوجل</div>
+  <div class="messages" id="aiMsgs">
+    <div class="msg ai">أهلاً بك! أنا ذكاء اصطناعي مرتبط بجوجل 🧠 اسألني أي شيء وسأبحث لك وأجيبك من مصادر حقيقية ✅</div>
+  </div>
+</div>
+
+<!-- شريط الكتابة -->
+<div class="input-bar" id="inputBar" style="display:none">
+  <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
+  <button class="send-btn" id="sendBtn">إرسال</button>
+</div>
+
+<!-- شريط التنقل -->
+<div class="nav" id="navBar" style="display:none">
   <button class="nav-btn active" data-page="public">💬 عام</button>
   <button class="nav-btn" data-page="private">👤 خاص</button>
-  <button class="nav-btn" data-page="video">📹 فيديو</button>
-  <button class="nav-btn" data-page="ai">🤖 ذكاء</button>
-</nav>
-
-<!-- مربع الكتابة -->
-<div class="input-area" id="inputArea" style="display:none">
-  <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
-  <button id="sendBtn" class="btn btn-primary" style="width:auto;padding:.9rem 1.2rem">إرسال</button>
+  <button class="nav-btn" data-page="call">📞 مكالمة</button>
+  <button class="nav-btn" data-page="ai">🤖 جوجل</button>
 </div>
 
 <script>
-// ----- إعداد فايربيز -----
+// ===== إعداد قاعدة البيانات =====
 const firebaseConfig = {
   apiKey: "AIzaSyCz9x9Z8hK8eYbX7M9pR8aQw2eT3yU4i5oP7",
   authDomain: "tawasol-app.firebaseapp.com",
@@ -74,119 +135,86 @@ const firebaseConfig = {
   messagingSenderId: "123456789012",
   appId: "1:123456789012:web:abc123def456ghi789jkl01"
 };
-
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ----- بيانات المستخدم -----
+// ===== بياناتك =====
 let userName = '';
 let currentPage = 'public';
+let GEMINI_API_KEY = localStorage.getItem('gemini_key') || '';
 
-// ----- الدخول -----
+// ===== حفظ المفتاح =====
+document.getElementById('saveKeyBtn').addEventListener('click', () => {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return alert('اكتب المفتاح أولاً!');
+  GEMINI_API_KEY = key;
+  localStorage.setItem('gemini_key', key);
+  document.getElementById('keySetupBox').style.display = 'none';
+  document.getElementById('startBtn').style.display = 'block';
+  alert('✅ تم حفظ المفتاح! الآن اكتب اسمك وابدأ');
+});
+
+// ===== الدخول =====
 document.getElementById('startBtn').addEventListener('click', () => {
   const name = document.getElementById('nameInput').value.trim();
   if (!name) return alert('اكتب اسمك أولاً!');
   userName = name;
   
-  // إظهار التطبيق بلا أي طلب صورة أو صلاحيات
-  document.getElementById('startScreen').classList.remove('active');
-  document.getElementById('mainScreen').classList.add('active');
+  document.getElementById('startScreen').classList.add('hidden');
   document.getElementById('navBar').style.display = 'flex';
-  document.getElementById('inputArea').style.display = 'flex';
+  document.getElementById('inputBar').style.display = 'flex';
   
-  loadPublicMessages();
+  loadPublicChat();
 });
 
-// ----- التنقل بين الصفحات -----
+// ===== التنقل =====
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentPage = btn.dataset.page;
     
-    document.getElementById('pageTitle').textContent = {
-      public: 'الرسائل العامة',
-      private: 'الرسائل الخاصة',
-      video: 'مكالمات الفيديو',
-      ai: 'الذكاء الاصطناعي'
-    }[currentPage];
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const pageId = 'page' + currentPage.charAt(0).toUpperCase() + currentPage.slice(1);
+    document.getElementById(pageId).classList.add('active');
     
-    document.getElementById('contentArea').innerHTML = '';
-    
-    if (currentPage === 'public') loadPublicMessages();
-    if (currentPage === 'private') loadPrivateMessages();
-    if (currentPage === 'video') loadVideoPage();
-    if (currentPage === 'ai') loadAIPage();
+    document.getElementById('inputBar').style.display = currentPage === 'call' ? 'none' : 'flex';
+    scrollToBottom();
   });
 });
 
-// ----- الرسائل العامة -----
-function loadPublicMessages() {
-  db.collection('public_chat').orderBy('time').onSnapshot(snap => {
-    const area = document.getElementById('contentArea');
-    area.innerHTML = '';
+function scrollToBottom() {
+  setTimeout(() => {
+    const msgs = document.querySelector('.page.active .messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 50);
+}
+
+// ===== الرسائل العامة =====
+function loadPublicChat() {
+  db.collection('public_chat').orderBy('time').limitToLast(30).onSnapshot(snap => {
+    const box = document.getElementById('publicMsgs');
+    box.innerHTML = '';
     snap.forEach(doc => {
       const m = doc.data();
       const div = document.createElement('div');
-      div.className = 'message' + (m.from === userName ? ' me' : '');
-      div.innerHTML = `<strong>${m.from}:</strong> ${m.text}`;
-      area.appendChild(div);
+      div.className = 'msg' + (m.from === userName ? ' me' : '');
+      div.textContent = m.from + ': ' + m.text;
+      box.appendChild(div);
     });
-    window.scrollTo(0, document.body.scrollHeight);
+    scrollToBottom();
   });
 }
 
-// ----- الرسائل الخاصة -----
-function loadPrivateMessages() {
-  const area = document.getElementById('contentArea');
-  area.innerHTML = `
-    <p class="status info">اكتب اسم الشخص الذي تريد مراسلته ثم الرسالة مفصولة بـ : </p>
-    <p class="status info">مثال: أحمد: كيف حالك؟</p>
-  `;
-}
+// ===== إرسال الرسائل =====
+document.getElementById('sendBtn').addEventListener('click', sendMsg);
+document.getElementById('msgInput').addEventListener('keydown', e => e.key === 'Enter' && sendMsg());
 
-// ----- صفحة الفيديو — يطلب الكاميرا فقط وقت الاستخدام -----
-function loadVideoPage() {
-  const area = document.getElementById('contentArea');
-  area.innerHTML = `
-    <div class="video-box" id="localVideoBox">
-      <span>كاميرتك — اضغط لتفعيلها</span>
-    </div>
-    <button class="btn btn-primary" id="startCamBtn">📷 تشغيل الكاميرا</button>
-    <p class="status info" style="margin-top:1rem">ملاحظة: سيطلب منك الإذن بالكاميرا فقط عند الضغط على الزر أعلاه ✅</p>
-  `;
-  
-  document.getElementById('startCamBtn').addEventListener('click', async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      const box = document.getElementById('localVideoBox');
-      box.innerHTML = '';
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.autoplay = true;
-      video.muted = true;
-      box.appendChild(video);
-      document.getElementById('startCamBtn').textContent = '✅ الكاميرا شغالة';
-    } catch (err) {
-      alert('لم يتم السماح بالكاميرا — عادي استخدم باقي التطبيق ✅');
-    }
-  });
-}
-
-// ----- الذكاء الاصطناعي -----
-function loadAIPage() {
-  const area = document.getElementById('contentArea');
-  area.innerHTML = `<p class="status info">اسألني أي سؤال وسأجيبك فوراً 🤖</p>`;
-}
-
-// ----- إرسال الرسائل -----
-document.getElementById('sendBtn').addEventListener('click', sendMessage);
-document.getElementById('msgInput').addEventListener('keydown', e => e.key === 'Enter' && sendMessage());
-
-function sendMessage() {
+async function sendMsg() {
   const input = document.getElementById('msgInput');
   const text = input.value.trim();
   if (!text) return;
+  input.value = '';
   
   if (currentPage === 'public') {
     db.collection('public_chat').add({
@@ -196,8 +224,77 @@ function sendMessage() {
     });
   }
   
-  input.value = '';
+  if (currentPage === 'ai') {
+    if (!GEMINI_API_KEY) {
+      alert('⚠️ لم تضع مفتاح جوجل بعد! أعد تحميل الصفحة وضعه أولاً');
+      return;
+    }
+    
+    const aiBox = document.getElementById('aiMsgs');
+    // رسالتك
+    const myDiv = document.createElement('div');
+    myDiv.className = 'msg me';
+    myDiv.textContent = text;
+    aiBox.appendChild(myDiv);
+    
+    // جاري البحث
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'msg ai loading';
+    loadingDiv.textContent = 'جاري البحث في جوجل...';
+    aiBox.appendChild(loadingDiv);
+    scrollToBottom();
+    
+    // طلب من جوجل
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: text }] }]
+        })
+      });
+      
+      const data = await res.json();
+      loadingDiv.remove();
+      
+      let reply = 'عذراً، لم أستطع الحصول على إجابة 😅';
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        reply = data.candidates[0].content.parts[0].text;
+      }
+      
+      const aiDiv = document.createElement('div');
+      aiDiv.className = 'msg ai';
+      aiDiv.textContent = reply;
+      aiBox.appendChild(aiDiv);
+      
+    } catch (err) {
+      loadingDiv.remove();
+      const errDiv = document.createElement('div');
+      errDiv.className = 'msg ai';
+      errDiv.textContent = '❌ خطأ في الاتصال: تأكد من المفتاح والإنترنت';
+      aiBox.appendChild(errDiv);
+    }
+    
+    scrollToBottom();
+  }
 }
+
+// ===== الكاميرا =====
+document.getElementById('startCamBtn').addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    const box = document.getElementById('localVideoBox');
+    box.innerHTML = '';
+    const vid = document.createElement('video');
+    vid.srcObject = stream;
+    vid.autoplay = true;
+    vid.muted = true;
+    box.appendChild(vid);
+    document.getElementById('startCamBtn').textContent = '✅ الكاميرا شغالة';
+  } catch {
+    alert('لم يتم السماح بالكاميرا — عادي استخدم باقي التطبيق ✅');
+  }
+});
 </script>
 </body>
 </html>
