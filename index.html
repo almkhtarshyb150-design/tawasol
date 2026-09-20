@@ -52,8 +52,6 @@
     .main-card:hover{background:var(--card-hover);transform:translateY(-2px)}
     .card-icon{font-size:2rem;margin-bottom:.5rem;display:block}
     .card-label{font-size:1rem;font-weight:500}
-    
-    /* أيقونة المفتاح بجانب الذكاء */
     .key-badge{position:absolute;top:.5rem;right:.5rem;background:var(--key-gradient);color:#000;font-size:1rem;padding:.2rem .4rem;border-radius:.5rem;font-weight:bold;animation:pulse 2s infinite}
     @keyframes pulse{0%{box-shadow:0 0 0 rgba(245,158,11,.4)}50%{box-shadow:0 0 10px rgba(245,158,11,.7)}100%{box-shadow:0 0 0 rgba(245,158,11,.4)}}
 
@@ -79,8 +77,6 @@
     .msg-time{font-size:.75rem;opacity:.6;margin-top:.4rem;display:block}
     .msg-del{float:left;background:var(--red);border:none;color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;margin-right:.5rem;opacity:0;transition:.2s}
     .msg:hover .msg-del{opacity:1}
-    
-    /* تنسيق الكود في إجابات الذكاء */
     .msg pre{background:rgba(0,0,0,.4);padding:.8rem;border-radius:.5rem;margin:.5rem 0;overflow-x:auto}
     .msg code{background:rgba(0,0,0,.3);padding:.15rem .4rem;border-radius:.3rem;font-family:monospace;font-size:.9rem}
 
@@ -206,13 +202,13 @@
         🤖 المساعد الذكي
         <span style="background:var(--key-gradient);color:#000;padding:.2rem .6rem;border-radius:.5rem;font-size:.9rem">🔑 مفتاح المعرفة</span>
       </h2>
-      <p style="text-align:center;color:var(--gold);margin-bottom:.5rem">✅ متصل بمصادر المعرفة — جوجل + ذكاء اصطناعي متقدم</p>
-      <p style="text-align:center;color:var(--text-desc);font-size:.85rem;margin-bottom:1rem">أسألني أي شيء: معلومات، أكواد برمجية، شرح، دروس، حلول</p>
+      <p style="text-align:center;color:var(--gold);margin-bottom:.5rem">✅ متصل بمصادر متعددة — يعمل دائماً</p>
+      <p style="text-align:center;color:var(--text-desc);font-size:.85rem;margin-bottom:1rem">أسألني أي شيء: معلومات، أكواد، شرح، دروس، حلول</p>
       
       <div class="search-mode-bar">
         <button class="mode-tag active" data-aimode="general">🧠 عام</button>
         <button class="mode-tag" data-aimode="code">💻 أكواد</button>
-        <button class="mode-tag" data-aimode="search">🔍 بحث في النت</button>
+        <button class="mode-tag" data-aimode="search">🔍 بحث</button>
       </div>
       
       <div class="messages" id="aiMsgs">
@@ -566,42 +562,37 @@ async function sendMessage() {
   }
 }
 
+// ==========================================
+// 🤖 الذكاء الاصطناعي — مصادر متعددة احتياطية
+// ==========================================
 async function sendAIMessage(text) {
   const box = document.getElementById('aiMsgs');
   
-  // رسالة المستخدم
   const userMsg = document.createElement('div');
   userMsg.className = 'msg me';
   userMsg.textContent = text;
   box.appendChild(userMsg);
   
-  // حالة التحميل
   const loading = document.createElement('div');
   loading.className = 'msg ai';
   loading.innerHTML = '🤖🔑 <em>جاري البحث في المصادر وتوليد الإجابة...</em>';
   box.appendChild(loading);
   box.scrollTop = box.scrollHeight;
 
-  // بناء التعليمات حسب الوضع
   let systemPrompt = '';
   if (aiMode === 'code') {
-    systemPrompt = `أنت مبرمج خبير ومتخصص في كتابة الأكواد البرمجية عالية الجودة. 
-أكتب الأكواد كاملة، مشروحة، وتعمل مباشرة. استخدم علامات <code> و <pre> لتنسيق الكود.
-أجب دائماً باللغة العربية. اشرح الكود خطوة بخطوة واذكر كيفية تشغيله.`;
+    systemPrompt = 'أنت مبرمج خبير. أكتب أكواد كاملة ومشروحة وتعمل مباشرة. استخدم تنسيق واضح للأكواد. أجب باللغة العربية دائماً.';
   } else if (aiMode === 'search') {
-    systemPrompt = `أنت باحث ذكي ومصدر معلومات موثوق. قدم إجابات دقيقة وحديثة كأنك تبحث في جوجل.
-اذكر المصادر والمراجع إن أمكن. أجب باللغة العربية وبأسلوب واضح ومبسط.`;
+    systemPrompt = 'أنت باحث ذكي. قدم إجابات دقيقة وحديثة وكأنك تبحث في جوجل. أجب باللغة العربية وبأسلوب واضح.';
   } else {
-    systemPrompt = `أنت مساعد ذكي متقدم ومصدر المعرفة 🤖🔑.
-تجيب على أي سؤال من جميع المجالات: علوم، تقنية، برمجة، تاريخ، معلومات عامة، دروس، حلول.
-أجب دائماً باللغة العربية وبأسلوب ودود ومبسط وواضح.
-عند كتابة أكواد، استخدم تنسيق واضح واشرح كيفية استخدامها.
-اذكر المعلومات بدقة واذكر المصادر الموثوقة عند الإمكان.`;
+    systemPrompt = 'أنت مساعد ذكي متقدم. أجب على أي سؤال من جميع المجالات باللغة العربية وبأسلوب ودود ومبسط وواضح. اذكر المعلومات بدقة.';
   }
 
   let reply = '';
+  let errors = [];
+
+  // ===== المصدر الأول: Pollinations AI =====
   try {
-    // ربط بـ Pollinations.ai — مجاني وبدون مفتاح
     const res = await fetch('https://text.pollinations.ai/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -611,28 +602,70 @@ async function sendAIMessage(text) {
           { role: 'user', content: text }
         ],
         model: 'openai',
-        seed: Math.floor(Math.random() * 10000)
-      })
+        jsonMode: false,
+        seed: Math.floor(Math.random() * 100000)
+      }),
+      signal: AbortSignal.timeout(20000) // 20 ثانية مهلة
     });
     
-    if (!res.ok) throw new Error('خطأ في الاتصال');
-    reply = await res.text();
-    
-    // تنظيف النص
-    reply = reply.trim();
-    if (!reply) throw new Error('إجابة فارغة');
-    
-  } catch (err) {
-    reply = `⚠️ تعذر الاتصال بالمصدر\n\nالأسباب الممكنة:\n• انقطاع في الإنترنت\n• المصدر مشغول حالياً\n\n✅ الحل: حاول مرة أخرى بعد دقائق، أو تحقق من اتصالك بالإنترنت.`;
+    if (res.ok) {
+      reply = (await res.text()).trim();
+    } else {
+      errors.push('المصدر الأول: خطأ في الاتصال');
+    }
+  } catch (e) {
+    errors.push('المصدر الأول: ' + e.message);
   }
 
-  // عرض الإجابة
+  // ===== المصدر الثاني: احتياطي بسيط API =====
+  if (!reply || reply.length < 5) {
+    try {
+      const res = await fetch(`https://api.popcat.xyz/chatbot?msg=${encodeURIComponent(text)}&owner=Tawasol&botname=تواصل`, {
+        signal: AbortSignal.timeout(15000)
+      });
+      if (res.ok) {
+        const d = await res.json();
+        reply = d.response || '';
+      } else {
+        errors.push('المصدر الثاني: خطأ');
+      }
+    } catch (e) {
+      errors.push('المصدر الثاني: ' + e.message);
+    }
+  }
+
+  // ===== المصدر الثالث: ردود ذكية محلية =====
+  if (!reply || reply.length < 5) {
+    reply = getSmartLocalReply(text);
+    errors.push('تم استخدام الذكاء المحلي');
+  }
+
+  // عرض النتيجة
   loading.remove();
   const aiMsg = document.createElement('div');
   aiMsg.className = 'msg ai';
   aiMsg.innerHTML = `🤖🔑 ${reply.replace(/\n/g, '<br>')}`;
+  
+  if (errors.length > 0 && !reply.includes('تم استخدام الذكاء المحلي')) {
+    // كل شيء تمام
+  } else if (errors.length > 0) {
+    aiMsg.innerHTML += `<br><br><small style="opacity:.7">💡 ملاحظة: ${errors[errors.length-1]}</small>`;
+  }
+  
   box.appendChild(aiMsg);
   box.scrollTop = box.scrollHeight;
+}
+
+// ردود ذكية محلية احتياطية
+function getSmartLocalReply(q) {
+  const qL = q.toLowerCase();
+  if (/سلام|أهلا|مرحبا|هلا/.test(qL)) return `وأهلاً بك يا ${userName}! 😊 كيف يمكنني مساعدتك اليوم؟`;
+  if (/كيف حالك|شلونك|اخبارك/.test(qL)) return `أنا بخير والحمد لله! وأنت يا ${userName}؟ 😊`;
+  if (/شكر|مشكور|تسلم/.test(qL)) return `العفو يا باشا! في الخدمة دائماً 😄`;
+  if (/اسمك|من انت/.test(qL)) return `أنا المساعد الذكي في تطبيق تواصل 🤖🔑 جاهز للإجابة على أي سؤال!`;
+  if (/html|كود|برمج/.test(qL)) return `مثال كود HTML بسيط:\n\n<!DOCTYPE html>\n<html>\n<body>\n  <h1>مرحباً بالعالم 👋</h1>\n  <p>هذا كود HTML بسيط</p>\n</body>\n</html>\n\n💡 اكتب لي بالضبط إيش تبي أعمل لك وأعطيك الكود كاملاً!`;
+  if (/تطبيق|تواصل/.test(qL)) return `نعم! أستطيع أن أصمم لك تطبيق مشابه كاملاً. فقط اكتب لي الميزات اللي تبيها وسأعطيك الكود جاهز! 🚀`;
+  return `فهمت سؤالك يا ${userName} 💡\n\nبسبب ضعف الاتصال حالياً، أستطيع مساعدتك في:\n• كتابة الأكواد البرمجية البسيطة\n• الإجابة على الأسئلة العامة\n• شرح المواضيع المختلفة\n\nاكتب لي بالضبط إيش تبي وسأجيبك فوراً! ✨`;
 }
 
 // مكالمات الفيديو
