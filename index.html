@@ -1,785 +1,153 @@
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f1b2b">
-  <title>Tawasol — تواصل 🤝</title>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    :root{
-      --bg:#0f1b2b;--card:#1a2c47;--card-hover:#24345c;
-      --text:#ffffff;--text-desc:#a0b4cc;
-      --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
-      --offline:#4b5563;--accent:#00d4ff;--purple:#a855f7;
-      --gold:#f59e0b;--key-gradient:linear-gradient(135deg,#f59e0b,#facc15)
-    }
-    body{background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
-
-    .start-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;padding:2rem}
-    .start-screen.hidden{display:none}
-    .app-title{font-size:2rem;font-weight:bold;margin-bottom:.5rem}
-    .status-msg{color:var(--text-desc);margin-bottom:1.5rem;font-size:.9rem}
-    .input{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;background:var(--card);color:var(--text);font-size:1rem;margin-bottom:1rem}
-    .btn{width:100%;max-width:350px;padding:1rem;border:none;border-radius:.75rem;font-size:1rem;font-weight:bold;cursor:pointer;background:var(--blue);color:white;transition:.2s}
-    .btn:hover{transform:scale(1.02)}
-
-    .top-bar{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);position:sticky;top:0;z-index:100}
-    .mode-switch{display:flex;gap:.5rem}
-    .mode-btn{padding:.4rem 1rem;border-radius:2rem;font-size:.85rem;font-weight:500;border:none;cursor:pointer;transition:.2s}
-    .mode-btn.online{background:rgba(34,197,94,.15);color:var(--green);border:1px solid var(--green)}
-    .mode-btn.local{background:rgba(75,85,99,.15);color:var(--offline);border:1px solid var(--offline)}
-    .mode-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:.4rem}
-    .mode-dot.online{background:var(--green)}
-    .mode-dot.local{background:var(--offline)}
-    .app-name{font-size:1.3rem;font-weight:bold;color:var(--accent)}
-
-    .nav-bar{display:flex;justify-content:space-around;align-items:center;padding:.75rem 0;background:var(--card);position:fixed;bottom:0;left:0;right:0;z-index:100;border-top:1px solid #2a3a5a}
-    .nav-btn{display:flex;flex-direction:column;align-items:center;gap:.2rem;background:transparent;border:none;color:var(--text-desc);cursor:pointer;transition:.2s}
-    .nav-btn.active{color:var(--accent)}
-    .nav-btn span{font-size:.75rem}
-    .nav-icon{font-size:1.3rem}
-
-    .container{padding:1rem}
-    .welcome{text-align:center;margin:1.5rem 0}
-    .welcome h1{font-size:1.4rem;margin-bottom:.3rem}
-    .welcome p{color:var(--text-desc)}
-
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;max-width:500px;margin:0 auto}
-    .main-card{background:var(--card);border:none;border-radius:1rem;padding:2rem 1rem;color:var(--text);cursor:pointer;transition:.2s;text-align:center;position:relative;overflow:hidden}
-    .main-card:hover{background:var(--card-hover);transform:translateY(-2px)}
-    .card-icon{font-size:2rem;margin-bottom:.5rem;display:block}
-    .card-label{font-size:1rem;font-weight:500}
-    .key-badge{position:absolute;top:.5rem;right:.5rem;background:var(--key-gradient);color:#000;font-size:1rem;padding:.2rem .4rem;border-radius:.5rem;font-weight:bold;animation:pulse 2s infinite}
-    @keyframes pulse{0%{box-shadow:0 0 0 rgba(245,158,11,.4)}50%{box-shadow:0 0 10px rgba(245,158,11,.7)}100%{box-shadow:0 0 0 rgba(245,158,11,.4)}}
-
-    .page{display:none;padding:1rem}
-    .page.active{display:block}
-    .page-title{font-size:1.3rem;font-weight:bold;margin-bottom:1rem;text-align:center;display:flex;align-items:center;justify-content:center;gap:.5rem}
-    .back-btn{background:transparent;border:none;color:var(--accent);font-size:1rem;cursor:pointer;margin-bottom:1rem;display:inline-flex;align-items:center;gap:.5rem}
-
-    .users-list{max-height:55vh;overflow-y:auto;margin-bottom:1rem}
-    .user-item{background:var(--card);padding:1rem 1.2rem;border-radius:.8rem;margin:.5rem 0;cursor:pointer;transition:.2s;display:flex;justify-content:space-between;align-items:center}
-    .user-item:hover{background:var(--card-hover)}
-    .user-name{font-weight:500;font-size:1rem}
-    .status-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-left:.5rem}
-    .status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green)}
-    .status-dot.offline{background:var(--offline)}
-    .status-text{font-size:.85rem}
-
-    .messages{max-height:50vh;overflow-y:auto;margin-bottom:5rem}
-    .msg{background:var(--card);padding:.9rem 1.1rem;border-radius:1rem;margin:.5rem 0;max-width:90%;line-height:1.6;white-space:pre-wrap}
-    .msg.me{margin-left:auto;background:var(--blue)}
-    .msg.other{margin-right:auto}
-    .msg.ai{background:linear-gradient(135deg,var(--purple),var(--accent));margin-right:auto;border-left:3px solid var(--gold)}
-    .msg-time{font-size:.75rem;opacity:.6;margin-top:.4rem;display:block}
-    .msg-del{float:left;background:var(--red);border:none;color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;margin-right:.5rem;opacity:0;transition:.2s}
-    .msg:hover .msg-del{opacity:1}
-    .msg pre{background:rgba(0,0,0,.4);padding:.8rem;border-radius:.5rem;margin:.5rem 0;overflow-x:auto}
-    .msg code{background:rgba(0,0,0,.3);padding:.15rem .4rem;border-radius:.3rem;font-family:monospace;font-size:.9rem}
-
-    .input-bar{display:flex;gap:.5rem;align-items:center;position:fixed;bottom:70px;left:1rem;right:1rem;max-width:500px;margin:0 auto}
-    .input-bar .input{margin:0;flex:1;background:var(--card)}
-    .send-btn{padding:1rem 1.5rem;border:none;border-radius:.75rem;background:var(--green);color:white;font-weight:bold;cursor:pointer}
-    .search-mode-bar{display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
-    .mode-tag{padding:.4rem .8rem;border-radius:1rem;font-size:.8rem;border:none;cursor:pointer;opacity:.7}
-    .mode-tag.active{opacity:1;box-shadow:0 0 0 2px var(--gold)}
-
-    .video-box{background:#000;border-radius:1rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin:1rem 0;overflow:hidden}
-    video{width:100%;height:100%;object-fit:cover}
-    .call-buttons{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
-    .btn-small{padding:.6rem 1.2rem;font-size:.9rem;border-radius:.5rem;border:none;cursor:pointer;font-weight:bold}
-    .btn-red{background:var(--red);color:white}
-    .btn-green{background:var(--green);color:white}
-    .btn-orange{background:#ff9800;color:white}
-
-    .toast{position:fixed;top:4rem;right:1rem;background:var(--green);color:white;padding:.9rem 1.2rem;border-radius:.75rem;z-index:200;display:none;box-shadow:0 4px 15px rgba(0,0,0,.3)}
-    .toast.show{display:block}
-    .toast.err{background:var(--red)}
-    .toast.warn{background:#ff9800}
-
-    .hidden{display:none!important}
-  </style>
-</head>
-<body>
-
-<div class="toast" id="toast"></div>
-
-<div class="start-screen" id="startScreen">
-  <h1 class="app-title">Tawasol 🤝</h1>
-  <p class="status-msg" id="statusMsg">جاري التحقق... ⏳</p>
-  <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
-  <button id="startBtn" class="btn">✅ ابدأ الاستخدام</button>
-</div>
-
-<div id="mainApp" class="hidden">
-  <div class="top-bar">
-    <div class="mode-switch">
-      <button class="mode-btn local" id="localBtn">
-        محلي <span class="mode-dot local"></span>
-      </button>
-      <button class="mode-btn online" id="onlineBtn">
-        الإنترنت <span class="mode-dot online"></span>
-      </button>
-    </div>
-    <div class="app-name">Tawasol 🤝</div>
-  </div>
-
-  <div class="nav-bar">
-    <button class="nav-btn active" data-page="home">
-      <span class="nav-icon">🏠</span>
-      <span>الرئيسية</span>
-    </button>
-    <button class="nav-btn" data-page="private">
-      <span class="nav-icon">💬</span>
-      <span>خاص</span>
-    </button>
-    <button class="nav-btn" data-page="public">
-      <span class="nav-icon">📢</span>
-      <span>العام</span>
-    </button>
-    <button class="nav-btn" data-page="ai">
-      <span class="nav-icon">🤖</span>
-      <span>المساعد</span>
-    </button>
-    <button class="nav-btn" data-page="call">
-      <span class="nav-icon">📹</span>
-      <span>فيديو</span>
-    </button>
-  </div>
-
-  <div class="container">
-    <div class="page active" id="page-home">
-      <div class="welcome">
-        <h1>👋 أهلاً بك يا <span id="userNameDisplay"></span></h1>
-        <p id="modeDesc">الوضع: بالإتصال بالإنترنت 🌐</p>
-      </div>
-      <div class="grid">
-        <button class="main-card" data-goto="private">
-          <span class="card-icon">💬</span>
-          <span class="card-label">رسائل خاصة</span>
-        </button>
-        <button class="main-card" data-goto="public">
-          <span class="card-icon">📢</span>
-          <span class="card-label">الرسائل العامة</span>
-        </button>
-        <button class="main-card" data-goto="ai">
-          <span class="card-icon">🤖</span>
-          <span class="card-label">المساعد الذكي</span>
-          <span class="key-badge">🔑</span>
-        </button>
-        <button class="main-card" data-goto="call">
-          <span class="card-icon">📹</span>
-          <span class="card-label">مكالمة فيديو</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="page" id="page-private">
-      <button class="back-btn" data-back="home">← رجوع</button>
-      <h2 class="page-title">💬 الرسائل الخاصة</h2>
-      <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً لمراسلته:</p>
-      <div class="users-list" id="usersList">
-        <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
-      </div>
-      <div id="chatArea" class="hidden">
-        <p style="text-align:center;margin:1rem 0;color:var(--accent)">محادثة مع: <strong id="chatWithName"></strong></p>
-        <div class="messages" id="privateChat"></div>
-      </div>
-    </div>
-
-    <div class="page" id="page-public">
-      <button class="back-btn" data-back="home">← رجوع</button>
-      <h2 class="page-title">📢 الرسائل العامة</h2>
-      <div class="messages" id="publicMsgs"></div>
-    </div>
-
-    <div class="page" id="page-ai">
-      <button class="back-btn" data-back="home">← رجوع</button>
-      <h2 class="page-title">
-        🤖 المساعد الذكي
-        <span style="background:var(--key-gradient);color:#000;padding:.2rem .6rem;border-radius:.5rem;font-size:.9rem">🔑 مفتاح المعرفة</span>
-      </h2>
-      <p style="text-align:center;color:var(--gold);margin-bottom:.5rem">✅ متصل بمصادر متعددة — يعمل دائماً</p>
-      <p style="text-align:center;color:var(--text-desc);font-size:.85rem;margin-bottom:1rem">أسألني أي شيء: معلومات، أكواد، شرح، دروس، حلول</p>
-      
-      <div class="search-mode-bar">
-        <button class="mode-tag active" data-aimode="general">🧠 عام</button>
-        <button class="mode-tag" data-aimode="code">💻 أكواد</button>
-        <button class="mode-tag" data-aimode="search">🔍 بحث</button>
-      </div>
-      
-      <div class="messages" id="aiMsgs">
-        <div class="msg ai">أهلاً بك! أنا المساعد الذكي المتقدم 🤖🔑<br><br>أستطيع: <br>✅ الإجابة على أي سؤال من مصادر موثوقة<br>✅ كتابة وتصليح الأكواد البرمجية<br>✅ البحث في الإنترنت وجلب أحدث المعلومات<br>✅ شرح المواضيع بطريقة مبسطة<br><br>اكتب لي ما تريد وسأجيبك فوراً 💡</div>
-      </div>
-    </div>
-
-    <div class="page" id="page-call">
-      <button class="back-btn" data-back="home">← رجوع</button>
-      <h2 class="page-title">📹 مكالمة فيديو</h2>
-      <p style="color:var(--text-desc);margin-bottom:.5rem">اختر شخصاً للإتصال به:</p>
-      <div class="users-list" id="callUsersList">
-        <p style="text-align:center;color:var(--text-desc)">جاري تحميل الأسماء...</p>
-      </div>
-      <div class="video-box" id="localVideoBox">كاميرتك — اضغط لتشغيل</div>
-      <div class="video-box" id="remoteVideoBox" style="display:none">كاميرا الطرف الآخر</div>
-      <div class="call-buttons">
-        <button class="btn-small btn-green" id="startCamBtn">📷 تشغيل الكاميرا</button>
-        <button class="btn-small btn-green" id="callBtn" style="display:none">📞 إتصال</button>
-        <button class="btn-small btn-orange" id="answerBtn" style="display:none">✅ إستلام</button>
-        <button class="btn-small btn-red" id="endCallBtn" style="display:none">❌ إنهاء</button>
-      </div>
-      <p id="callStatus" style="text-align:center;margin-top:1rem;color:var(--text-desc)">جاهز للإتصال</p>
-    </div>
-  </div>
-
-  <div class="input-bar" id="inputBar" class="hidden">
-    <input type="text" id="msgInput" class="input" placeholder="اكتب رسالتك...">
-    <button class="send-btn" id="sendBtn">إرسال</button>
-  </div>
-</div>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCz9x9Z8hK8eYbX7M9pR8aQw2eT3yU4i5oP7",
-  authDomain: "tawasol-app.firebaseapp.com",
-  projectId: "tawasol-app"
-};
-
-let db = null;
-let currentMode = 'online';
-let userId = '';
-let userName = '';
-let currentPage = 'home';
-let chatWith = null;
-let localStream = null, peerConn = null;
-let incomingOffer = null, callWithName = null;
-let aiMode = 'general';
-
-const localData = {
-  get(key) { try { return JSON.parse(localStorage.getItem('tawasol_' + key)) } catch { return null } },
-  set(key, val) { localStorage.setItem('tawasol_' + key, JSON.stringify(val)) },
-  getMessages() { return this.get('msgs') || [] },
-  saveMessage(m) { const a = this.getMessages(); a.push(m); this.set('msgs', a); }
-};
-
-function showToast(text, isErr=false, isWarn=false) {
-  const t = document.getElementById('toast');
-  t.textContent = text;
-  t.className = `toast show ${isErr?'err':isWarn?'warn':''}`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-async function initDB() {
-  try {
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    document.getElementById('statusMsg').textContent = '✅ متصل بالإنترنت — جاهز!';
-    document.getElementById('statusMsg').style.color = 'var(--green)';
-  } catch (e) {
-    document.getElementById('statusMsg').textContent = '⚠️ سيعمل بالوضع المحلي فقط';
-    document.getElementById('statusMsg').style.color = '#ff9800';
-    currentMode = 'local';
-  }
-}
-initDB();
-
-document.getElementById('onlineBtn').onclick = () => {
-  currentMode = 'online';
-  document.getElementById('onlineBtn').style.opacity = '1';
-  document.getElementById('localBtn').style.opacity = '.6';
-  document.getElementById('modeDesc').textContent = 'الوضع: بالإتصال بالإنترنت 🌐';
-  if (db) { loadPublicMessages(); loadUsersList(); loadCallUsersList(); }
-};
-document.getElementById('localBtn').onclick = () => {
-  currentMode = 'local';
-  document.getElementById('localBtn').style.opacity = '1';
-  document.getElementById('onlineBtn').style.opacity = '.6';
-  document.getElementById('modeDesc').textContent = 'الوضع: محلي — بدون إنترنت 📍';
-  loadLocalMessages();
-};
-
-function makeId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-document.getElementById('startBtn').onclick = async () => {
-  const n = document.getElementById('nameInput').value.trim();
-  if (!n) return alert('اكتب اسمك أولاً!');
-  if (n.length < 2) return alert('الاسم قصير جداً!');
-  
-  userName = n;
-  userId = makeId();
-
-  document.getElementById('startScreen').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
-  document.getElementById('userNameDisplay').textContent = userName;
-
-  if (currentMode === 'online' && db) {
-    await db.collection('users').doc(userId).set({
-      name: userName,
-      online: true,
-      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-    loadPublicMessages();
-    loadUsersList();
-    loadCallUsersList();
-    
-    window.addEventListener('beforeunload', async () => {
-      if (db) await db.collection('users').doc(userId).update({ online: false });
-    });
-  } else {
-    loadLocalMessages();
-  }
-};
-
-document.querySelectorAll('.mode-tag').forEach(tag => {
-  tag.onclick = () => {
-    document.querySelectorAll('.mode-tag').forEach(t => t.classList.remove('active'));
-    tag.classList.add('active');
-    aiMode = tag.dataset.aimode;
-  };
-});
-
-function goToPage(pageName) {
-  currentPage = pageName;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${pageName}`).classList.add('active');
-  
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector(`.nav-btn[data-page="${pageName}"]`)?.classList.add('active');
-  
-  const inputBar = document.getElementById('inputBar');
-  if (['private','public','ai'].includes(pageName) && (pageName !== 'private' || chatWith)) {
-    inputBar.classList.remove('hidden');
-  } else {
-    inputBar.classList.add('hidden');
-  }
-  
-  if (pageName === 'public' && db) loadPublicMessages();
-  if (pageName === 'private') { chatWith = null; document.getElementById('chatArea').classList.add('hidden'); if(db) loadUsersList(); }
-  if (pageName === 'call' && db) loadCallUsersList();
-}
-
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.onclick = () => goToPage(btn.dataset.page);
-});
-document.querySelectorAll('.main-card').forEach(btn => {
-  btn.onclick = () => goToPage(btn.dataset.goto);
-});
-document.querySelectorAll('.back-btn').forEach(btn => {
-  btn.onclick = () => goToPage(btn.dataset.back || 'home');
-});
-
-function loadUsersList() {
-  if (!db) return;
-  db.collection('users').orderBy('lastSeen', 'desc').limit(50)
-    .onSnapshot(snap => {
-      const list = document.getElementById('usersList');
-      list.innerHTML = '';
-      let hasOthers = false;
-      snap.forEach(doc => {
-        const u = doc.data();
-        if (u.name === userName) return;
-        hasOthers = true;
-        
-        const lastSeen = u.lastSeen?.toDate ? u.lastSeen.toDate() : new Date(u.lastSeen || 0);
-        const isOnline = u.online === true && (Date.now() - lastSeen.getTime()) < 120000;
-        
-        const item = document.createElement('div');
-        item.className = 'user-item';
-        item.innerHTML = `
-          <span class="user-name">${u.name}</span>
-          <span class="status-text">
-            <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
-            ${isOnline ? 'متصل' : 'غير متصل'}
-          </span>
-        `;
-        item.onclick = () => openChatWith(u.name);
-        list.appendChild(item);
-      });
-      if (!hasOthers) {
-        list.innerHTML = '<p style="text-align:center;color:var(--text-desc)">لا يوجد مستخدمون آخرون حالياً 😊</p>';
-      }
-    });
-}
-
-function loadCallUsersList() {
-  if (!db) return;
-  db.collection('users').orderBy('lastSeen', 'desc').limit(50)
-    .onSnapshot(snap => {
-      const list = document.getElementById('callUsersList');
-      list.innerHTML = '';
-      let hasOthers = false;
-      snap.forEach(doc => {
-        const u = doc.data();
-        if (u.name === userName) return;
-        hasOthers = true;
-        
-        const lastSeen = u.lastSeen?.toDate ? u.lastSeen.toDate() : new Date(u.lastSeen || 0);
-        const isOnline = u.online === true && (Date.now() - lastSeen.getTime()) < 120000;
-        
-        const item = document.createElement('div');
-        item.className = 'user-item';
-        item.innerHTML = `
-          <span class="user-name">${u.name}</span>
-          <span class="status-text">
-            <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
-            ${isOnline ? 'متصل' : 'غير متصل'}
-          </span>
-        `;
-        item.onclick = () => {
-          callWithName = u.name;
-          if (localStream) {
-            document.getElementById('callStatus').textContent = `تم الإختيار: ${u.name} — إضغط إتصال`;
-            document.getElementById('callBtn').style.display = 'inline-block';
-          } else {
-            alert('شغل الكاميرا أولاً من الزر أعلاه 📷');
-          }
-        };
-        list.appendChild(item);
-      });
-      if (!hasOthers) {
-        list.innerHTML = '<p style="text-align:center;color:var(--text-desc)">لا يوجد مستخدمون آخرون حالياً 😊</p>';
-      }
-    });
-}
-
-function openChatWith(name) {
-  chatWith = name;
-  document.getElementById('chatWithName').textContent = name;
-  document.getElementById('chatArea').classList.remove('hidden');
-  document.getElementById('inputBar').classList.remove('hidden');
-  document.getElementById('privateChat').innerHTML = '';
-  if (db) loadPrivateMessages();
-}
-
-function loadPublicMessages() {
-  if (!db) return;
-  db.collection('public_chat').orderBy('time').limitToLast(30)
-    .onSnapshot(snap => {
-      const box = document.getElementById('publicMsgs');
-      box.innerHTML = '';
-      snap.forEach(doc => {
-        const m = doc.data();
-        if (m.deleted) return;
-        const div = document.createElement('div');
-        div.className = `msg ${m.fromId === userId ? 'me' : ''}`;
-        div.innerHTML = `<strong>${m.fromName}</strong><br>${m.text}`;
-        if (m.fromId === userId) div.innerHTML += `<button class="msg-del" data-id="${doc.id}">×</button>`;
-        div.innerHTML += `<span class="msg-time">${formatTime(m.time)}</span>`;
-        box.appendChild(div);
-      });
-      attachDeleteListeners('public_chat');
-      box.scrollTop = box.scrollHeight;
-    });
-}
-
-function loadPrivateMessages() {
-  if (!db || !chatWith) return;
-  const chatId = [userName, chatWith].sort().join('_');
-  db.collection('private_chats').doc(chatId).collection('messages')
-    .orderBy('time').limitToLast(50)
-    .onSnapshot(snap => {
-      const box = document.getElementById('privateChat');
-      box.innerHTML = '';
-      snap.forEach(doc => {
-        const m = doc.data();
-        if (m.deleted) return;
-        const div = document.createElement('div');
-        div.className = `msg ${m.fromId === userId ? 'me' : 'other'}`;
-        div.innerHTML = `<strong>${m.fromName}</strong><br>${m.text}`;
-        if (m.fromId === userId) div.innerHTML += `<button class="msg-del" data-id="${doc.id}">×</button>`;
-        div.innerHTML += `<span class="msg-time">${formatTime(m.time)}</span>`;
-        box.appendChild(div);
-      });
-      attachDeleteListeners(`private_chats/${chatId}/messages`);
-      box.scrollTop = box.scrollHeight;
-    });
-}
-
-function loadLocalMessages() {
-  const box = document.getElementById('publicMsgs');
-  box.innerHTML = '';
-  localData.getMessages().forEach(m => {
-    const div = document.createElement('div');
-    div.className = `msg ${m.from === userName ? 'me' : ''}`;
-    div.innerHTML = `<strong>${m.from}</strong><br>${m.text}<span class="msg-time">${m.time}</span>`;
-    box.appendChild(div);
-  });
-  box.scrollTop = box.scrollHeight;
-}
-
-function formatTime(t) {
-  if (!t) return '';
-  const d = t?.toDate ? t.toDate() : new Date(t);
-  return d.toLocaleTimeString('ar-LY', {hour:'2-digit', minute:'2-digit'});
-}
-
-function attachDeleteListeners(collectionPath) {
-  document.querySelectorAll('.msg-del').forEach(btn => {
-    btn.onclick = async e => {
-      if (!confirm('حذف هذه الرسالة؟')) return;
-      if (!db) return showToast('في الوضع المحلي لا يمكن الحذف', false, true);
-      await db.collection(collectionPath).doc(e.target.dataset.id).update({ deleted: true });
-      showToast('✅ تم الحذف');
-    };
-  });
-}
-
-document.getElementById('sendBtn').onclick = sendMessage;
-document.getElementById('msgInput').onkeydown = e => e.key === 'Enter' && sendMessage();
-
-async function sendMessage() {
-  const inp = document.getElementById('msgInput');
-  const text = inp.value.trim();
-  if (!text) return;
-  inp.value = '';
-
-  if (currentMode === 'online' && db) {
-    if (currentPage === 'public') {
-      await db.collection('public_chat').add({
-        fromName: userName, fromId: userId, text,
-        time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false
-      });
-    } else if (currentPage === 'private' && chatWith) {
-      const chatId = [userName, chatWith].sort().join('_');
-      await db.collection('private_chats').doc(chatId).collection('messages').add({
-        fromName: userName, fromId: userId, text,
-        time: firebase.firestore.FieldValue.serverTimestamp(), deleted: false
-      });
-    } else if (currentPage === 'ai') {
-      await sendAIMessage(text);
-    }
-  } else {
-    localData.saveMessage({
-      from: userName, text,
-      time: new Date().toLocaleTimeString('ar-LY', {hour:'2-digit', minute:'2-digit'})
-    });
-    loadLocalMessages();
-  }
-}
-
-// ==========================================
-// 🤖 الذكاء الاصطناعي — مصادر متعددة احتياطية
-// ==========================================
-async function sendAIMessage(text) {
-  const box = document.getElementById('aiMsgs');
-  
-  const userMsg = document.createElement('div');
-  userMsg.className = 'msg me';
-  userMsg.textContent = text;
-  box.appendChild(userMsg);
-  
-  const loading = document.createElement('div');
-  loading.className = 'msg ai';
-  loading.innerHTML = '🤖🔑 <em>جاري البحث في المصادر وتوليد الإجابة...</em>';
-  box.appendChild(loading);
-  box.scrollTop = box.scrollHeight;
-
-  let systemPrompt = '';
-  if (aiMode === 'code') {
-    systemPrompt = 'أنت مبرمج خبير. أكتب أكواد كاملة ومشروحة وتعمل مباشرة. استخدم تنسيق واضح للأكواد. أجب باللغة العربية دائماً.';
-  } else if (aiMode === 'search') {
-    systemPrompt = 'أنت باحث ذكي. قدم إجابات دقيقة وحديثة وكأنك تبحث في جوجل. أجب باللغة العربية وبأسلوب واضح.';
-  } else {
-    systemPrompt = 'أنت مساعد ذكي متقدم. أجب على أي سؤال من جميع المجالات باللغة العربية وبأسلوب ودود ومبسط وواضح. اذكر المعلومات بدقة.';
-  }
-
-  let reply = '';
-  let errors = [];
-
-  // ===== المصدر الأول: Pollinations AI =====
-  try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: text }
-        ],
-        model: 'openai',
-        jsonMode: false,
-        seed: Math.floor(Math.random() * 100000)
-      }),
-      signal: AbortSignal.timeout(20000) // 20 ثانية مهلة
-    });
-    
-    if (res.ok) {
-      reply = (await res.text()).trim();
-    } else {
-      errors.push('المصدر الأول: خطأ في الاتصال');
-    }
-  } catch (e) {
-    errors.push('المصدر الأول: ' + e.message);
-  }
-
-  // ===== المصدر الثاني: احتياطي بسيط API =====
-  if (!reply || reply.length < 5) {
-    try {
-      const res = await fetch(`https://api.popcat.xyz/chatbot?msg=${encodeURIComponent(text)}&owner=Tawasol&botname=تواصل`, {
-        signal: AbortSignal.timeout(15000)
-      });
-      if (res.ok) {
-        const d = await res.json();
-        reply = d.response || '';
-      } else {
-        errors.push('المصدر الثاني: خطأ');
-      }
-    } catch (e) {
-      errors.push('المصدر الثاني: ' + e.message);
-    }
-  }
-
-  // ===== المصدر الثالث: ردود ذكية محلية =====
-  if (!reply || reply.length < 5) {
-    reply = getSmartLocalReply(text);
-    errors.push('تم استخدام الذكاء المحلي');
-  }
-
-  // عرض النتيجة
-  loading.remove();
-  const aiMsg = document.createElement('div');
-  aiMsg.className = 'msg ai';
-  aiMsg.innerHTML = `🤖🔑 ${reply.replace(/\n/g, '<br>')}`;
-  
-  if (errors.length > 0 && !reply.includes('تم استخدام الذكاء المحلي')) {
-    // كل شيء تمام
-  } else if (errors.length > 0) {
-    aiMsg.innerHTML += `<br><br><small style="opacity:.7">💡 ملاحظة: ${errors[errors.length-1]}</small>`;
-  }
-  
-  box.appendChild(aiMsg);
-  box.scrollTop = box.scrollHeight;
-}
-
-// ردود ذكية محلية احتياطية
-function getSmartLocalReply(q) {
-  const qL = q.toLowerCase();
-  if (/سلام|أهلا|مرحبا|هلا/.test(qL)) return `وأهلاً بك يا ${userName}! 😊 كيف يمكنني مساعدتك اليوم؟`;
-  if (/كيف حالك|شلونك|اخبارك/.test(qL)) return `أنا بخير والحمد لله! وأنت يا ${userName}؟ 😊`;
-  if (/شكر|مشكور|تسلم/.test(qL)) return `العفو يا باشا! في الخدمة دائماً 😄`;
-  if (/اسمك|من انت/.test(qL)) return `أنا المساعد الذكي في تطبيق تواصل 🤖🔑 جاهز للإجابة على أي سؤال!`;
-  if (/html|كود|برمج/.test(qL)) return `مثال كود HTML بسيط:\n\n<!DOCTYPE html>\n<html>\n<body>\n  <h1>مرحباً بالعالم 👋</h1>\n  <p>هذا كود HTML بسيط</p>\n</body>\n</html>\n\n💡 اكتب لي بالضبط إيش تبي أعمل لك وأعطيك الكود كاملاً!`;
-  if (/تطبيق|تواصل/.test(qL)) return `نعم! أستطيع أن أصمم لك تطبيق مشابه كاملاً. فقط اكتب لي الميزات اللي تبيها وسأعطيك الكود جاهز! 🚀`;
-  return `فهمت سؤالك يا ${userName} 💡\n\nبسبب ضعف الاتصال حالياً، أستطيع مساعدتك في:\n• كتابة الأكواد البرمجية البسيطة\n• الإجابة على الأسئلة العامة\n• شرح المواضيع المختلفة\n\nاكتب لي بالضبط إيش تبي وسأجيبك فوراً! ✨`;
-}
-
-// مكالمات الفيديو
-const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
-document.getElementById('startCamBtn').onclick = async () => {
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    const box = document.getElementById('localVideoBox');
-    box.innerHTML = '';
-    const vid = document.createElement('video');
-    vid.srcObject = localStream; vid.autoplay = true; vid.muted = true;
-    box.appendChild(vid);
-    document.getElementById('callStatus').textContent = '✅ الكاميرا شغالة — إختر شخصاً من القائمة';
-    if (db) monitorIncomingCalls();
-  } catch (e) { alert('لم يتم السماح للكاميرا: ' + e.message); }
-};
-
-document.getElementById('callBtn').onclick = async () => {
-  if (!callWithName) return alert('إختر شخصاً أولاً من القائمة');
-  if (!db) return alert('غير متصل بالإنترنت!');
-  
-  peerConn = new RTCPeerConnection(rtcConfig);
-  localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-  
-  peerConn.ontrack = e => {
-    const box = document.getElementById('remoteVideoBox');
-    box.style.display = 'block';
-    box.innerHTML = '';
-    const vid = document.createElement('video');
-    vid.srcObject = e.streams[0]; vid.autoplay = true;
-    box.appendChild(vid);
-  };
-
-  const offer = await peerConn.createOffer();
-  await peerConn.setLocalDescription(offer);
-
-  const callId = [userName, callWithName].sort().join('_');
-  await db.collection('calls').doc(callId).set({
-    from: userName, to: callWithName,
-    offer: { type: offer.type, sdp: offer.sdp },
-    status: 'calling',
-    time: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  document.getElementById('callBtn').style.display = 'none';
-  document.getElementById('endCallBtn').style.display = 'inline-block';
-  document.getElementById('callStatus').textContent = `📞 جاري الإتصال بـ ${callWithName}...`;
-};
-
-function monitorIncomingCalls() {
-  if (!db) return;
-  db.collection('calls').where('to', '==', userName).onSnapshot(async snap => {
-    snap.forEach(async doc => {
+/* =========================================================
+   📢 الرسائل العامة — تحديث لحظي + كل نص ثانية
+   ========================================================= */
+let publicListener = null;
+function listenPublicMessages(){
+  if(isLocalMode || !db) return;
+  // إلغاء أي مستمع قديم
+  if(publicListener) publicListener();
+  // المستمع اللحظي من Firebase
+  publicListener = db.collection("public").orderBy("time","asc").limitToLast(50).onSnapshot(snap=>{
+    document.getElementById("chatPublic").innerHTML = "";
+    snap.forEach(doc=>{
       const d = doc.data();
-      if (d.status === 'calling' && d.from !== userName && !incomingOffer) {
-        incomingOffer = d;
-        callWithName = d.from;
-        document.getElementById('answerBtn').style.display = 'inline-block';
-        document.getElementById('callStatus').textContent = `🔔 مكالمة واردة من ${d.from}!`;
-      }
+      addMsg("chatPublic", d.from, d.text, d.from===myName, d.file||null, false, doc.id);
     });
   });
+  // فحص إضافي كل نص ثانية لضمان السرعة
+  setInterval(async ()=>{
+    if(isLocalMode || !db) return;
+    const snap = await db.collection("public").orderBy("time","asc").limitToLast(50).get();
+    document.getElementById("chatPublic").innerHTML = "";
+    snap.forEach(doc=>{
+      const d = doc.data();
+      addMsg("chatPublic", d.from, d.text, d.from===myName, d.file||null, false, doc.id);
+    });
+  }, 500);
 }
 
-document.getElementById('answerBtn').onclick = async () => {
-  if (!incomingOffer || !db) return;
-  
-  peerConn = new RTCPeerConnection(rtcConfig);
-  localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-  
-  peerConn.ontrack = e => {
-    const box = document.getElementById('remoteVideoBox');
-    box.style.display = 'block';
-    box.innerHTML = '';
-    const vid = document.createElement('video');
-    vid.srcObject = e.streams[0]; vid.autoplay = true;
-    box.appendChild(vid);
-  };
-
-  await peerConn.setRemoteDescription(new RTCSessionDescription(incomingOffer.offer));
-  const answer = await peerConn.createAnswer();
-  await peerConn.setLocalDescription(answer);
-
-  const callId = [userName, callWithName].sort().join('_');
-  await db.collection('calls').doc(callId).update({
-    answer: { type: answer.type, sdp: answer.sdp },
-    status: 'connected'
-  });
-
-  document.getElementById('answerBtn').style.display = 'none';
-  document.getElementById('endCallBtn').style.display = 'inline-block';
-  document.getElementById('callStatus').textContent = '✅ متصل!';
-  incomingOffer = null;
-};
-
-document.getElementById('endCallBtn').onclick = async () => {
-  if (peerConn) peerConn.close();
-  if (localStream) localStream.getTracks().forEach(t => t.stop());
-  if (db && callWithName) {
-    const callId = [userName, callWithName].sort().join('_');
-    await db.collection('calls').doc(callId).delete().catch(()=>{});
+/* =========================================================
+   💬 الرسائل الخاصة — تحديث لحظي + كل نص ثانية
+   ========================================================= */
+let privateListener = null;
+function loadPrivateChat(){
+  if(isLocalMode || !db){
+    document.getElementById("chatPrivate").innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">الرسائل الخاصة ما تخدمش في الوضع المحلي — اتصل بالإنترنت</p>`;
+    return;
   }
-  peerConn = null; localStream = null; callWithName = null; incomingOffer = null;
-  
-  document.getElementById('remoteVideoBox').style.display = 'none';
-  document.getElementById('endCallBtn').style.display = 'none';
-  document.getElementById('callBtn').style.display = 'inline-block';
-  document.getElementById('callStatus').textContent = '✅ تم إنهاء المكالمة';
-};
+  const target = document.getElementById('privateWith').value.trim().toLowerCase();
+  if(!target || target===myLower){
+    document.getElementById("chatPrivate").innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">اكتب اسم الشخص لتبدأ المحادثة</p>`;
+    return;
+  }
+  // إلغاء أي مستمع قديم
+  if(privateListener) privateListener();
+  const chatId = getPrivateChatId(target);
+  // المستمع اللحظي
+  privateListener = db.collection("chats").doc(chatId).collection("messages").orderBy("time","asc").limitToLast(50).onSnapshot(snap=>{
+    document.getElementById("chatPrivate").innerHTML = "";
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const text = d.encrypted ? decryptText(d.text) : d.text;
+      addMsg("chatPrivate", d.from, text, d.from===myName, d.file||null, false, doc.id);
+    });
+  });
+  // فحص إضافي كل نص ثانية
+  setInterval(async ()=>{
+    if(isLocalMode || !db) return;
+    const t = document.getElementById('privateWith').value.trim().toLowerCase();
+    if(!t || t===myLower) return;
+    const cid = getPrivateChatId(t);
+    const snap = await db.collection("chats").doc(cid).collection("messages").orderBy("time","asc").limitToLast(50).get();
+    document.getElementById("chatPrivate").innerHTML = "";
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const text = d.encrypted ? decryptText(d.text) : d.text;
+      addMsg("chatPrivate", d.from, text, d.from===myName, d.file||null, false, doc.id);
+    });
+  }, 500);
+}
 
-setInterval(() => {
-  if (currentMode === 'online' && db && currentPage === 'public') loadPublicMessages();
-}, 3000);
-</script>
-</body>
-</html>
+/* =========================================================
+   👥 قائمة المستخدمين — تحديث لحظي + كل نص ثانية
+   ========================================================= */
+function listenUsers(){
+  if(!isOnline || !db){
+    userCountEl.textContent = `👥 1 متصل (أنت)`;
+    document.getElementById('usersList').innerHTML = `
+      <div class="user-item">
+        <span class="status-dot dot-purple"></span>
+        <span>${myName} (أنت)</span>
+        <span style="margin-left:auto;font-size:11px;opacity:0.5">محلي</span>
+      </div>
+      <p style="text-align:center;opacity:0.5;padding:20px;font-size:12px">الوضع المحلي — الأجهزة في نفس الواي فاي تظهر هنا</p>
+    `;
+    return;
+  }
+  // المستمع اللحظي
+  db.collection("users").onSnapshot(snap=>{
+    updateUsersList(snap);
+  });
+  // فحص إضافي كل نص ثانية
+  setInterval(async ()=>{
+    if(!isOnline || !db) return;
+    const snap = await db.collection("users").get();
+    updateUsersList(snap);
+  }, 500);
+}
+
+// دالة مساعدة لتحديث القائمة
+function updateUsersList(snap){
+  const listEl = document.getElementById('usersList');
+  let count=0;
+  listEl.innerHTML = "";
+  snap.forEach(doc=>{
+    const u = doc.data();
+    const online = u.online === true;
+    if(online) count++;
+    listEl.innerHTML += `
+      <div class="user-item" onclick="document.getElementById('privateWith').value='${u.name}';switchPage('private')">
+        <span class="status-dot ${online?'dot-green':'dot-red'}"></span>
+        <span>${u.name}</span>
+        ${online?'<span style="margin-left:auto;font-size:11px;opacity:0.5">متصل</span>':'<span style="margin-left:auto;font-size:11px;opacity:0.4">غير متصل</span>'}
+      </div>
+    `;
+  });
+  userCountEl.textContent = `👥 ${count} متصل`;
+}
+
+/* =========================================================
+   📁 الملفات المشتركة — تحديث لحظي + كل نص ثانية
+   ========================================================= */
+function listenSharedFiles(){
+  if(isLocalMode || !db){
+    document.getElementById('sharedFiles').innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">مشاركة الملفات ما تخدمش في الوضع المحلي</p>`;
+    return;
+  }
+  // المستمع اللحظي
+  db.collection("shared_files").orderBy("time","desc").limitToLast(20).onSnapshot(snap=>{
+    renderSharedFiles(snap);
+  });
+  // فحص إضافي كل نص ثانية
+  setInterval(async ()=>{
+    if(isLocalMode || !db) return;
+    const snap = await db.collection("shared_files").orderBy("time","desc").limitToLast(20).get();
+    renderSharedFiles(snap);
+  }, 500);
+}
+
+// دالة مساعدة لعرض الملفات
+function renderSharedFiles(snap){
+  const container = document.getElementById('sharedFiles');
+  container.innerHTML = "";
+  snap.forEach(doc=>{
+    const f = doc.data();
+    const size = (f.size / 1024 / 1024).toFixed(2);
+    container.innerHTML += `
+      <a href="${f.url}" download="${f.name}" class="msg-file" style="justify-content:space-between">
+        <span>📎 ${f.name}</span>
+        <span style="font-size:11px;opacity:0.6">${f.from} • ${size} ميجا</span>
+      </a>
+    `;
+  });
+}
