@@ -7,68 +7,58 @@
 <title>تواصل 🤝</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-  :root{--bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;--green:#00c49a;--blue:#1976d2;--red:#d32f2f;--yellow:#f59e0b}
-  body{background:var(--bg);color:var(--text);min-height:100vh}
+  body{background:#0f1b2b;color:#e6edf3;min-height:100vh}
 
   /* شاشة الدخول */
-  .auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px}
-  .auth-card{background:var(--card);padding:25px;border-radius:20px;max-width:420px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-  .auth-card h2{font-size:26px;color:var(--green);margin-bottom:15px;text-align:center}
-  .auth-input{width:100%;padding:13px 16px;border-radius:10px;border:none;background:#152538;color:white;margin:6px 0;font-size:14px}
-  .auth-btn{width:100%;padding:13px;border-radius:25px;border:none;background:var(--green);color:white;font-weight:bold;cursor:pointer;font-size:16px;margin-top:10px}
+  .auth-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+  .auth-card{background:#1a2c42;padding:30px;border-radius:20px;max-width:400px;width:100%;text-align:center}
+  h2{color:#00c49a;margin-bottom:20px;font-size:26px}
+  input{width:100%;padding:15px;border-radius:12px;border:none;background:#152538;color:white;font-size:16px;margin-bottom:15px;text-align:center}
+  button{width:100%;padding:15px;border-radius:25px;border:none;background:#00c49a;color:white;font-weight:bold;font-size:17px;cursor:pointer}
+  button:active{transform:scale(0.97)}
   .hidden{display:none !important}
 
-  /* الشريط العلوي */
-  .top-bar{position:fixed;top:0;left:0;right:0;background:var(--card);padding:10px 12px;z-index:400;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-  .app-name{font-size:17px;font-weight:bold;color:var(--green)}
-  .top-buttons{display:flex;gap:6px;flex-wrap:wrap}
-  .top-btn{background:transparent;color:white;border:none;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:13px}
-  .top-btn.green{background:rgba(0,196,154,0.2);color:var(--green)}
-  .top-btn.red{background:rgba(211,47,47,0.2);color:var(--red)}
+  /* التطبيق */
+  .top-bar{position:fixed;top:0;left:0;right:0;background:#1a2c42;padding:12px;display:flex;justify-content:space-between;align-items:center}
+  .app-name{color:#00c49a;font-weight:bold;font-size:18px}
+  .btn-small{width:auto;padding:8px 15px;background:#d32f2f;font-size:14px;border-radius:20px}
+  .keys-btn{background:#00c49a;margin-right:8px}
 
-  /* التنقل */
-  .nav-bar{position:fixed;top:55px;left:0;right:0;background:var(--card);padding:8px 6px;z-index:350;display:flex;justify-content:space-around;border-bottom:1px solid #22344d}
-  .nav-btn{background:transparent;border:none;color:#9fb0b5;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:14px}
-  .nav-btn.active{background:rgba(0,196,154,0.15);color:var(--green)}
+  .nav-bar{position:fixed;top:55px;left:0;right:0;background:#1a2c42;padding:10px;display:flex;justify-content:space-around;border-bottom:1px solid #22344d}
+  .nav-btn{background:transparent;border:none;color:#9fb0b5;padding:10px 20px;border-radius:10px;font-size:15px}
+  .nav-btn.active{background:rgba(0,196,154,0.15);color:#00c49a}
 
-  /* المحتوى */
-  .pages{margin-top:105px;padding:15px;max-width:600px;margin:0 auto;padding-bottom:90px}
+  .content{margin-top:100px;padding:15px;padding-bottom:90px;max-width:600px;margin-left:auto;margin-right:auto}
   .page{display:none}
   .page.active{display:block}
-  .page-title{font-size:19px;font-weight:bold;color:var(--green);margin-bottom:15px;text-align:center}
+  .page-title{color:#00c49a;text-align:center;margin-bottom:20px;font-size:20px}
 
-  /* حالة المفاتيح */
-  .keys-status{background:rgba(0,196,154,0.1);padding:10px;border-radius:10px;margin-bottom:15px}
-  .key-line{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px}
-  .key-dot{width:10px;height:10px;border-radius:50%}
-  .key-dot.ok{background:var(--green);box-shadow:0 0 4px var(--green)}
-  .key-dot.fail{background:var(--red)}
-  .key-dot.off{background:#555}
+  .keys-status{background:rgba(0,196,154,0.1);padding:12px;border-radius:10px;margin-bottom:20px;font-size:14px}
+  .key-row{display:flex;justify-content:space-between;padding:5px 0}
+  .dot{width:10px;height:10;border-radius:50%;display:inline-block;margin-left:5px}
+  .dot-green{background:#00c49a}
+  .dot-red{background:#d32f2f}
+  .dot-gray{background:#555}
 
-  /* الرسائل */
   .chat-box{min-height:350px}
   .msg{margin:10px 0;max-width:90%}
   .msg.me{margin-left:auto}
-  .msg-bubble{background:#24344d;padding:12px 15px;border-radius:18px;border-bottom-right-radius:6px;line-height:1.6;font-size:15px}
-  .msg.me .msg-bubble{background:var(--green);color:white}
-  .msg.ai .msg-bubble{border-left:3px solid var(--green)}
+  .bubble{background:#24344d;padding:12px 16px;border-radius:18px;border-bottom-right-radius:6px}
+  .msg.me .bubble{background:#00c49a;color:white}
 
-  /* شريط الكتابة */
-  .input-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:10px;display:flex;gap:8px;border-top:1px solid #22344d;align-items:center}
-  .msg-input{flex:1;padding:12px 16px;border-radius:25px;border:none;background:#152538;color:white;font-size:15px}
-  .send-btn{background:var(--green);color:white;border:none;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:17px}
+  .input-bar{position:fixed;bottom:0;left:0;right:0;background:#1a2c42;padding:10px;display:flex;gap:8px;border-top:1px solid #22344d}
+  .msg-input{flex:1;padding:13px 18px;border-radius:25px;border:none;background:#152538;color:white;font-size:16px;text-align:right}
+  .send-btn{width:44px;height:44px;padding:0;border-radius:50%;font-size:20px}
 
-  /* نافذة المفاتيح الثلاثة */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:800;padding:20px}
+  /* نافذة المفاتيح */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
   .modal.show{display:flex}
-  .modal-box{background:var(--card);padding:22px;border-radius:20px;max-width:400px;width:100%}
-  .modal-title{font-size:17px;font-weight:bold;color:var(--green);margin-bottom:15px;text-align:center}
-  .modal-label{font-size:13px;opacity:0.7;margin-bottom:4px;display:block}
-  .modal-input{width:100%;padding:12px;border-radius:10px;border:none;background:#152538;color:white;margin-bottom:10px;font-size:13px}
+  .modal-box{background:#1a2c42;padding:25px;border-radius:20px;max-width:400px;width:100%}
+  .modal-box h3{color:#00c49a;text-align:center;margin-bottom:20px}
+  .modal-box input{text-align:left;margin-bottom:10px}
   .modal-buttons{display:flex;gap:10px;margin-top:5px}
-  .modal-btn{flex:1;padding:11px;border-radius:10px;border:none;cursor:pointer;font-size:14px}
-  .modal-btn.save{background:var(--green);color:white}
-  .modal-btn.cancel{background:#374151;color:white}
+  .modal-btn{flex:1;padding:12px;font-size:15px}
+  .cancel{background:#374151}
 </style>
 </head>
 <body>
@@ -77,314 +67,243 @@
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <h2>🤝 تواصل</h2>
-    <p style="text-align:center;margin-bottom:15px;opacity:0.7;font-size:14px">أهلاً بك! اكتب اسمك لتبدأ</p>
-    <input type="text" id="userName" class="auth-input" placeholder="اسمك...">
-    <button class="auth-btn" onclick="startApp()">✅ ابدأ الاستخدام</button>
+    <input type="text" id="nameInput" placeholder="اكتب اسمك هنا...">
+    <button id="startButton" onclick="startNow()">✅ ابدأ الاستخدام</button>
+    <p id="errorText" style="color:#ff6b6b;margin-top:15px;display:none"></p>
   </div>
 </div>
 
-<!-- الشريط العلوي -->
-<div class="top-bar hidden" id="topBar">
-  <span class="app-name">🤝 تواصل</span>
-  <div class="top-buttons">
-    <button class="top-btn green" onclick="openKeysModal()">🔑 المفاتيح</button>
-    <button class="top-btn red" onclick="logout()">خروج</button>
-  </div>
-</div>
-
-<!-- التنقل -->
-<div class="nav-bar hidden" id="navBar">
-  <button class="nav-btn active" onclick="switchPage('general')">📢 عام</button>
-  <button class="nav-btn" onclick="switchPage('ai')">🤖 الذكاء</button>
-</div>
-
-<!-- المحتوى -->
-<div class="pages hidden" id="pagesContainer">
-  <!-- الرسائل العامة -->
-  <div class="page active" id="page-general">
-    <h2 class="page-title">📢 الرسائل العامة</h2>
-    <div class="chat-box" id="generalChat"></div>
-  </div>
-
-  <!-- الذكاء الاصطناعي -->
-  <div class="page" id="page-ai">
-    <h2 class="page-title">🤖 الذكاء الاصطناعي</h2>
-    
-    <!-- حالة المفاتيح الثلاثة -->
-    <div class="keys-status" id="keysStatusBox">
-      <div class="key-line">
-        <span>المفتاح الأول</span>
-        <span id="key1Status"><span class="key-dot off"></span> لم يوضع</span>
-      </div>
-      <div class="key-line">
-        <span>المفتاح الثاني</span>
-        <span id="key2Status"><span class="key-dot off"></span> لم يوضع</span>
-      </div>
-      <div class="key-line">
-        <span>المفتاح الثالث</span>
-        <span id="key3Status"><span class="key-dot off"></span> لم يوضع</span>
-      </div>
-      <div class="key-line" style="margin-top:6px;padding-top:6px;border-top:1px solid #2a3b4c">
-        <span>المستخدم حالياً</span>
-        <span id="activeKeyIndex" style="color:var(--green)">—</span>
-      </div>
+<!-- التطبيق كله -->
+<div id="appArea" class="hidden">
+  <div class="top-bar">
+    <span class="app-name">🤝 تواصل</span>
+    <div style="display:flex">
+      <button class="btn-small keys-btn" onclick="openKeys()">🔑 المفاتيح</button>
+      <button class="btn-small" onclick="logout()">خروج</button>
     </div>
-    
-    <div class="chat-box" id="aiChat"></div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="nav-btn active" onclick="showPage('general')">📢 عام</button>
+    <button class="nav-btn" onclick="showPage('ai')">🤖 الذكاء</button>
+  </div>
+
+  <div class="content">
+    <!-- صفحة الرسائل العامة -->
+    <div class="page active" id="page-general">
+      <h2 class="page-title">📢 الرسائل العامة</h2>
+      <div class="chat-box" id="generalBox"></div>
+    </div>
+
+    <!-- صفحة الذكاء -->
+    <div class="page" id="page-ai">
+      <h2 class="page-title">🤖 الذكاء الاصطناعي</h2>
+      <div class="keys-status" id="keysStatus">
+        <div class="key-row"><span>المفتاح 1</span><span id="k1-status"><span class="dot dot-gray"></span> لم يوضع</span></div>
+        <div class="key-row"><span>المفتاح 2</span><span id="k2-status"><span class="dot dot-gray"></span> لم يوضع</span></div>
+        <div class="key-row"><span>المفتاح 3</span><span id="k3-status"><span class="dot dot-gray"></span> لم يوضع</span></div>
+        <div class="key-row" style="margin-top:8px;padding-top:8px;border-top:1px solid #2a3b4c">
+          <span>المستخدم</span><span id="active-which">—</span>
+        </div>
+      </div>
+      <div class="chat-box" id="aiBox"></div>
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <input type="text" id="msgInput" class="msg-input" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">✓</button>
   </div>
 </div>
 
-<!-- شريط الكتابة -->
-<div class="input-bar hidden" id="inputBar">
-  <input type="text" id="messageInput" class="msg-input" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')sendMsg()">
-  <button class="send-btn" onclick="sendMsg()">✓</button>
-</div>
-
-<!-- نافذة إدخال المفاتيح الثلاثة -->
+<!-- نافذة المفاتيح -->
 <div class="modal" id="keysModal">
   <div class="modal-box">
-    <h3 class="modal-title">🔑 المفاتيح الثلاثة</h3>
-    
-    <label class="modal-label">المفتاح الأول (الرئيسي)</label>
-    <input type="password" id="key1Input" class="modal-input" placeholder="الصق المفتاح الأول...">
-    
-    <label class="modal-label">المفتاح الثاني (احتياطي)</label>
-    <input type="password" id="key2Input" class="modal-input" placeholder="الصق المفتاح الثاني...">
-    
-    <label class="modal-label">المفتاح الثالث (احتياطي ثاني)</label>
-    <input type="password" id="key3Input" class="modal-input" placeholder="الصق المفتاح الثالث...">
-    
-    <p style="font-size:12px;opacity:0.6;margin:10px 0">
-      ✅ يستخدم الأول أولاً → لو تعطل ينتقل للثاني تلقائياً → ثم الثالث<br>
-      🔒 كل المفاتيح محفوظة في تليفونك فقط
-    </p>
-    
+    <h3>🔑 المفاتيح الثلاثة</h3>
+    <input type="password" id="key1" placeholder="المفتاح الأول">
+    <input type="password" id="key2" placeholder="المفتاح الثاني (اختياري)">
+    <input type="password" id="key3" placeholder="المفتاح الثالث (اختياري)">
+    <p style="font-size:13px;opacity:0.7;margin:10px 0">لو المفتاح الأول توقف → يشتغل بالتاني تلقائياً ✅</p>
     <div class="modal-buttons">
-      <button class="modal-btn cancel" onclick="closeKeysModal()">إلغاء</button>
-      <button class="modal-btn save" onclick="saveAllKeys()">حفظ ✅</button>
+      <button class="modal-btn cancel" onclick="closeKeys()">إلغاء</button>
+      <button class="modal-btn" onclick="saveKeys()">حفظ ✅</button>
     </div>
   </div>
 </div>
 
 <script>
 let myName = "";
-// مصفوفة المفاتيح — نحملها من الذاكرة
-let API_KEYS = [];
-let currentKeyIndex = 0;
+let keys = [];
+let activeIndex = 0;
 
-// تحميل المفاتيح المحفوظة
-function loadSavedKeys(){
-  const k1 = localStorage.getItem("groq_key1") || "";
-  const k2 = localStorage.getItem("groq_key2") || "";
-  const k3 = localStorage.getItem("groq_key3") || "";
-  API_KEYS = [k1, k2, k3].filter(k => k && k.length > 20);
-  currentKeyIndex = 0;
-  updateKeysStatusDisplay();
-}
+// ✅ زر البدء — شغال 100%
+function startNow(){
+  const input = document.getElementById("nameInput");
+  const name = input.value.trim();
+  const err = document.getElementById("errorText");
 
-// بدء الاستخدام
-function startApp(){
-  const name = document.getElementById("userName").value.trim();
-  if(!name || name.length < 2){
-    alert("❌ اكتب اسمك صحيح!");
+  if(!name){
+    err.textContent = "❌ اكتب اسمك أولاً!";
+    err.style.display = "block";
+    input.style.border = "2px solid #ff6b6b";
     return;
   }
-  
+  if(name.length < 2){
+    err.textContent = "❌ الاسم قصير جداً!";
+    err.style.display = "block";
+    return;
+  }
+
+  // ✅ تم الدخول
   myName = name;
-  localStorage.setItem("tawasol_user", name);
+  localStorage.setItem("tawasol_name", name);
   
-  // إخفاء الدخول وإظهار التطبيق
+  // إخفاء شاشة الدخول
   document.getElementById("authScreen").classList.add("hidden");
-  ["topBar","navBar","pagesContainer","inputBar"].forEach(id=>{
-    document.getElementById(id).classList.remove("hidden");
-  });
+  // إظهار التطبيق
+  document.getElementById("appArea").classList.remove("hidden");
   
   loadSavedKeys();
-  addMessage("generalChat", "نظام", `أهلاً وسهلاً يا ${myName}! 🤝 التطبيق جاهز ✅`, false);
+  addMsg("generalBox", "نظام", `أهلاً وسهلاً يا ${myName}! 🤝 التطبيق جاهز ✅`, false);
 }
 
-// تبديل الصفحات
-function switchPage(pageName){
-  document.querySelectorAll(".nav-btn").forEach((btn, idx)=>{
-    btn.classList.toggle("active", 
-      (pageName === 'general' && idx === 0) || 
-      (pageName === 'ai' && idx === 1)
-    );
-  });
-  document.getElementById("page-general").classList.toggle("active", pageName === 'general');
-  document.getElementById("page-ai").classList.toggle("active", pageName === 'ai');
+function showPage(name){
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
+  
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(`page-${name}`).classList.add("active");
 }
 
-// تحديث عرض حالة المفاتيح
-function updateKeysStatusDisplay(){
-  for(let i=1; i<=3; i++){
-    const keyVal = localStorage.getItem(`groq_key${i}`) || "";
-    const statusEl = document.getElementById(`key${i}Status`);
-    
-    if(!keyVal){
-      statusEl.innerHTML = `<span class="key-dot off"></span> لم يوضع`;
-    }else if(API_KEYS.includes(keyVal)){
-      const isActive = API_KEYS[currentKeyIndex] === keyVal;
-      statusEl.innerHTML = `<span class="key-dot ok"></span> جاهز ${isActive ? '✅ نشط' : ''}`;
-    }else{
-      statusEl.innerHTML = `<span class="key-dot fail"></span> غير صالح`;
-    }
-  }
-  
-  document.getElementById("activeKeyIndex").textContent = 
-    API_KEYS.length > 0 ? `المفتاح رقم ${currentKeyIndex + 1} من ${API_KEYS.length}` : "لا يوجد مفاتيح";
-}
-
-// فتح نافذة المفاتيح
-function openKeysModal(){
-  document.getElementById("key1Input").value = localStorage.getItem("groq_key1") ? "••••••••••••" : "";
-  document.getElementById("key2Input").value = localStorage.getItem("groq_key2") ? "••••••••••••" : "";
-  document.getElementById("key3Input").value = localStorage.getItem("groq_key3") ? "••••••••••••" : "";
-  document.getElementById("keysModal").classList.add("show");
-}
-
-function closeKeysModal(){
-  document.getElementById("keysModal").classList.remove("show");
-}
-
-// حفظ كل المفاتيح
-function saveAllKeys(){
-  const k1 = document.getElementById("key1Input").value.trim();
-  const k2 = document.getElementById("key2Input").value.trim();
-  const k3 = document.getElementById("key3Input").value.trim();
-  
-  // دالة التحقق من صحة المفتاح
-  function isValidKey(k){ return k.length > 20; }
-  
-  // حفظ المفاتيح الصالحة فقط
-  if(isValidKey(k1)) localStorage.setItem("groq_key1", k1);
-  else localStorage.removeItem("groq_key1");
-  
-  if(isValidKey(k2)) localStorage.setItem("groq_key2", k2);
-  else localStorage.removeItem("groq_key2");
-  
-  if(isValidKey(k3)) localStorage.setItem("groq_key3", k3);
-  else localStorage.removeItem("groq_key3");
-  
-  loadSavedKeys();
-  closeKeysModal();
-  
-  if(API_KEYS.length === 0){
-    alert("⚠️ لم يتم حفظ أي مفتاح — تأكد من نسخ المفاتيح بشكل صحيح!");
-  }else{
-    alert(`✅ تم حفظ ${API_KEYS.length} مفتاح بنجاح!`);
-  }
-}
-
-// إضافة رسالة
-function addMessage(boxId, sender, text, isMe, isAi=false){
+function addMsg(boxId, from, text, isMe){
   const box = document.getElementById(boxId);
   const div = document.createElement("div");
-  div.className = `msg ${isMe?"me":""} ${isAi?"ai":""}`;
-  div.innerHTML = `<div class="msg-bubble"><strong>${sender}:</strong><br>${text}</div>`;
+  div.className = `msg ${isMe?"me":""}`;
+  div.innerHTML = `<div class="bubble"><strong>${from}:</strong><br>${text}</div>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
 
-// إرسال رسالة
 function sendMsg(){
-  const input = document.getElementById("messageInput");
+  const input = document.getElementById("msgInput");
   const text = input.value.trim();
   if(!text) return;
 
-  const inAI = document.getElementById("page-ai").classList.contains("active");
+  const isAI = document.getElementById("page-ai").classList.contains("active");
   
-  if(!inAI){
-    addMessage("generalChat", myName, text, true);
+  if(!isAI){
+    addMsg("generalBox", myName, text, true);
   }else{
-    if(API_KEYS.length === 0){
-      alert("⚠️ ضع مفاتيحك أولاً من زر «المفاتيح» في الأعلى");
+    if(keys.length === 0){
+      alert("⚠️ ضع مفاتيحك أولاً من زر «المفاتيح» فوق");
       return;
     }
-    addMessage("aiChat", myName, text, true);
-    askAIWithFallback(text); // مع التبديل التلقائي
+    addMsg("aiBox", myName, text, true);
+    askAI(text);
   }
-  
   input.value = "";
 }
 
-// الذكاء الاصطناعي مع التبديل التلقائي بين المفاتيح
-async function askAIWithFallback(question){
-  addMessage("aiChat", "🤖", "⏳ جاري التفكير...", false, true);
-  
-  // نجرب كل مفتاح بالتتابع حتى ينجح
-  let lastError = null;
-  
-  for(let attempt = 0; attempt < API_KEYS.length; attempt++){
-    const keyToUse = API_KEYS[currentKeyIndex];
+async function askAI(q){
+  addMsg("aiBox", "🤖", "⏳ جاري التفكير...", false);
+
+  for(let tryIndex = 0; tryIndex < keys.length; tryIndex++){
+    const key = keys[activeIndex];
     
     try{
-      console.log(`استخدام المفتاح رقم ${currentKeyIndex + 1}`);
-      
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${keyToUse}`
+          "Authorization": `Bearer ${key}`
         },
         body: JSON.stringify({
           model: "llama3-8b-8192",
-          messages: [{ role: "user", content: question }],
-          temperature: 0.7
+          messages: [{role: "user", content: q}]
         })
       });
-      
+
       const data = await res.json();
+      document.querySelector("#aiBox .msg:last-child")?.remove();
       
-      // حذف رسالة الانتظار
-      document.querySelector("#aiChat .msg:last-child")?.remove();
+      if(data.error) throw new Error(data.error.message);
       
-      if(data.error){
-        throw new Error(data.error.message);
-      }
-      
-      // نجاح ✅
-      addMessage("aiChat", "🤖 الذكاء الاصطناعي", data.choices[0].message.content, false, true);
-      updateKeysStatusDisplay();
-      return; // انتهى — ما نحتاج نجرب باقي المفاتيح
+      addMsg("aiBox", "🤖 الذكاء", data.choices[0].message.content, false);
+      return;
       
     }catch(err){
-      lastError = err;
-      console.warn(`المفتاح ${currentKeyIndex + 1} فشل:`, err.message);
+      console.log("مفتاح فشل:", err.message);
+      activeIndex = (activeIndex + 1) % keys.length;
+      updateKeysDisplay();
       
-      // ننتقل للمفتاح التالي
-      currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-      updateKeysStatusDisplay();
-      
-      // نحذف رسالة الانتظار ونكتب تنبيه
-      document.querySelector("#aiChat .msg:last-child")?.remove();
-      addMessage("aiChat", "🔄 تبديل", `المفتاح الحالي تعطل → جاري استخدام المفتاح التالي...`, false, true);
-      
-      // لو وصلنا لنفس المفتاح مرة تانية = كلهم فشلوا
-      if(attempt === API_KEYS.length - 1){
-        document.querySelector("#aiChat .msg:last-child")?.remove();
-        addMessage("aiChat", "⚠️ تعذر", `كل المفاتيح لا تعمل أو انتهت صلاحيتها:\n${err.message}\n\nأضف مفاتيح جديدة من زر «المفاتيح» فوق.`, false, true);
-        return;
+      if(tryIndex === keys.length - 1){
+        document.querySelector("#aiBox .msg:last-child")?.remove();
+        addMsg("aiBox", "⚠️ خطأ", "كل المفاتيح لا تعمل! أضف مفاتيح جديدة.", false);
       }
     }
   }
 }
 
-// خروج
+function openKeys(){
+  document.getElementById("keysModal").classList.add("show");
+}
+function closeKeys(){
+  document.getElementById("keysModal").classList.remove("show");
+}
+
+function saveKeys(){
+  const k1 = document.getElementById("key1").value.trim();
+  const k2 = document.getElementById("key2").value.trim();
+  const k3 = document.getElementById("key3").value.trim();
+
+  function valid(k){ return k && k.length > 20; }
+
+  keys = [];
+  if(valid(k1)){ localStorage.setItem("k1",k1); keys.push(k1); } else localStorage.removeItem("k1");
+  if(valid(k2)){ localStorage.setItem("k2",k2); keys.push(k2); } else localStorage.removeItem("k2");
+  if(valid(k3)){ localStorage.setItem("k3",k3); keys.push(k3); } else localStorage.removeItem("k3");
+
+  activeIndex = 0;
+  updateKeysDisplay();
+  closeKeys();
+  alert(keys.length > 0 ? `✅ تم حفظ ${keys.length} مفتاح` : "⚠️ لم يتم حفظ أي مفتاح");
+}
+
+function loadSavedKeys(){
+  keys = [];
+  [localStorage.getItem("k1"), localStorage.getItem("k2"), localStorage.getItem("k3")].forEach(k=>{
+    if(k && k.length > 20) keys.push(k);
+  });
+  updateKeysDisplay();
+}
+
+function updateKeysDisplay(){
+  for(let i=1; i<=3; i++){
+    const k = localStorage.getItem(`k${i}`);
+    const status = document.getElementById(`k${i}-status`);
+    if(!k){
+      status.innerHTML = `<span class="dot dot-gray"></span> لم يوضع`;
+    }else if(keys.indexOf(k) === activeIndex){
+      status.innerHTML = `<span class="dot dot-green"></span> نشط ✅`;
+    }else{
+      status.innerHTML = `<span class="dot dot-green"></span> جاهز`;
+    }
+  }
+  document.getElementById("active-which").textContent = 
+    keys.length > 0 ? `مفتاح ${activeIndex+1} من ${keys.length}` : "لا يوجد";
+}
+
 function logout(){
   if(confirm("تسجيل الخروج؟")){
-    localStorage.removeItem("tawasol_user");
+    localStorage.removeItem("tawasol_name");
     location.reload();
   }
 }
 
-// تحميل الاسم المحفوظ
-window.addEventListener("DOMContentLoaded", ()=>{
-  const savedName = localStorage.getItem("tawasol_user");
-  if(savedName){
-    document.getElementById("userName").value = savedName;
-  }
-});
+window.onload = function(){
+  const saved = localStorage.getItem("tawasol_name");
+  if(saved) document.getElementById("nameInput").value = saved;
+};
 </script>
 </body>
 </html>
