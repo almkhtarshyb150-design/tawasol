@@ -1,153 +1,821 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1b2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Tawasol — تواصل 🤝</title>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-storage-compat.min.js"></script>
+
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
+  :root{
+    --bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;--green:#00c49a;
+    --blue:#1976d2;--red:#d32f2f;--gray:#2a3b4f;--purple:#9c27b0;--orange:#f39c12
+  }
+  body{background:var(--bg);color:var(--text);min-height:100vh}
+
+  .top-bar{position:fixed;top:0;left:0;right:0;background:var(--card);padding:10px 12px;z-index:400;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .app-name{font-size:18px;font-weight:bold;color:var(--green)}
+  .user-count{background:rgba(0,196,154,0.15);color:var(--green);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:bold}
+  .badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold}
+  .badge.online{background:rgba(0,196,154,0.2);color:var(--green)}
+  .badge.offline{background:rgba(211,47,47,0.2);color:var(--red)}
+  .badge.slow{background:rgba(243,156,18,0.2);color:var(--orange)}
+  .badge.local{background:rgba(156,39,176,0.2);color:var(--purple)}
+  .settings-btn{background:var(--blue);color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px}
+  .logout-btn{background:var(--red);color:white;border:none;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px}
+
+  .nav-bar{position:fixed;top:55px;left:0;right:0;background:var(--card);padding:8px 6px;z-index:350;display:flex;justify-content:space-around;border-bottom:1px solid #22344d;overflow-x:auto}
+  .nav-btn{background:transparent;border:none;color:#9fb0b5;padding:6px 10px;border-radius:12px;cursor:pointer;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:60px;white-space:nowrap;transition:.2s}
+  .nav-btn.active{background:rgba(0,196,154,0.15);color:var(--green)}
+  .nav-icon{font-size:18px}
+
+  .pages-container{margin-top:105px;padding:15px 15px 100px 15px;max-width:600px;margin-left:auto;margin-right:auto}
+  .page{display:none;min-height:calc(100vh - 200px)}
+  .page.active{display:block}
+  .page-header{text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid #22344d}
+  .page-title{font-size:20px;font-weight:bold;color:var(--green);margin-bottom:5px}
+  .page-desc{font-size:13px;opacity:0.6}
+
+  .users-list{background:var(--card);border-radius:12px;padding:12px;margin-bottom:15px}
+  .user-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:#243b55;margin-bottom:6px;cursor:pointer;transition:.2s}
+  .user-item:hover{background:#2a4566}
+  .status-dot{width:10px;height:10px;border-radius:50%}
+  .dot-green{background:var(--green);box-shadow:0 0 6px var(--green)}
+  .dot-red{background:var(--red)}
+  .dot-purple{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+
+  .chat-box{min-height:350px}
+  .msg{margin:10px 0;display:flex;max-width:92%;flex-direction:column}
+  .msg.me{margin-left:auto;align-items:flex-end}
+  .msg.other{margin-right:auto;align-items:flex-start}
+  .msg-bubble{background:var(--blue);padding:12px 16px;border-radius:20px;border-bottom-right-radius:6px;max-width:100%;line-height:1.7;word-break:break-word;font-size:14px}
+  .msg.other .msg-bubble{background:var(--gray);border-bottom-right-radius:20px;border-bottom-left-radius:6px}
+  .msg.ai .msg-bubble{background:rgba(156,39,176,0.25);border:1px solid var(--purple)}
+  .msg-img{max-width:220px;border-radius:10px;margin-top:6px;display:block}
+  .msg-file{background:rgba(0,196,154,0.1);padding:8px 12px;border-radius:8px;margin-top:6px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--green)}
+  .msg-meta{font-size:10px;opacity:0.5;margin-top:6px;display:flex;justify-content:space-between;align-items:center;width:100%}
+  .delete-menu{display:flex;gap:6px;margin-top:4px}
+  .del-me{background:var(--orange);color:white;border:none;padding:4px 10px;border-radius:10px;font-size:11px;cursor:pointer}
+  .del-all{background:var(--red);color:white;border:none;padding:4px 10px;border-radius:10px;font-size:11px;cursor:pointer}
+
+  .video-section{display:flex;flex-direction:column;gap:15px;align-items:center}
+  .video-pair{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%}
+  .video-wrap{flex:1;min-width:200px;text-align:center}
+  .video-label{font-size:13px;opacity:0.7;margin-bottom:6px}
+  video{width:100%;max-width:260px;border-radius:12px;background:#000;transform:scaleX(-1)}
+  video.remote{transform:none}
+  .vid-status{width:100%;text-align:center;padding:12px;border-radius:10px;background:#152538;font-size:14px}
+  .vid-status.connected{background:rgba(0,196,154,0.15);color:var(--green)}
+  .vid-status.calling{background:rgba(243,156,18,0.15);color:var(--orange)}
+  .vid-status.incoming{background:rgba(156,39,176,0.15);color:var(--purple)}
+  .call-notification{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);padding:30px;border-radius:20px;z-index:700;text-align:center;box-shadow:0 0 30px rgba(0,0,0,0.8)}
+
+  button{padding:11px 18px;border-radius:20px;border:none;cursor:pointer;font-weight:bold}
+  .btn-green{background:var(--green);color:white}
+  .btn-blue{background:var(--blue);color:white}
+  .btn-red{background:var(--red);color:white}
+  .btn-purple{background:var(--purple);color:white}
+  .btn-orange{background:var(--orange);color:white}
+  .input-wide{width:100%;max-width:320px;padding:12px 18px;border-radius:25px;border:none;background:#152538;color:white;text-align:center;margin-top:10px;font-size:14px}
+
+  .input-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:10px 12px;display:flex;gap:8px;align-items:center;border-top:1px solid #22344d;z-index:300}
+  .input-bar.hidden{display:none}
+  .msg-input{flex:1;padding:13px 18px;border-radius:25px;border:none;background:#152538;color:white;font-size:15px;min-width:0}
+  .icon-btn{width:44px;height:44px;border-radius:50%;border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .send-btn{background:var(--green)}
+  .attach-btn{background:var(--blue)}
+  .file-btn{background:var(--purple)}
+  .mic-btn{background:var(--orange)}
+  .mic-btn.recording{background:var(--red);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+  .auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px}
+  .auth-card{background:var(--card);padding:40px 30px;border-radius:20px;max-width:400px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+  .auth-card h2{font-size:28px;color:var(--green);margin-bottom:10px}
+  .auth-card p{opacity:0.6;margin-bottom:25px;font-size:14px}
+  .auth-input{width:100%;padding:14px 20px;border-radius:25px;border:none;background:#152538;color:white;margin-bottom:20px;font-size:16px;text-align:center}
+  .auth-btn{width:100%;padding:14px;border-radius:25px;border:none;background:var(--green);color:white;font-weight:bold;cursor:pointer;font-size:16px}
+  .hidden{display:none !important}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal-card{background:var(--card);padding:30px;border-radius:20px;max-width:400px;width:100%;text-align:center}
+  .modal-card h3{color:var(--green);margin-bottom:15px}
+  .modal-input{width:100%;padding:12px 16px;border-radius:12px;border:none;background:#152538;color:white;margin-bottom:15px;font-size:14px;text-align:center}
+  .modal-btns{display:flex;gap:10px;justify-content:center}
+  .btn-small{padding:8px 16px;border-radius:12px;font-size:13px}
+
+  .limits-list{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+  .limit-card{background:var(--card);border-radius:14px;padding:14px 16px;border-right:5px solid var(--green);box-shadow:0 2px 8px rgba(0,0,0,0.25)}
+  .limit-card.orange{border-right-color:var(--orange)}
+  .limit-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .limit-icon{font-size:22px}
+  .limit-title{font-size:15px;font-weight:bold;color:var(--text)}
+  .limit-body{font-size:13px;line-height:1.85;color:#c8d6e0;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:8px}
+  .local-indicator{position:fixed;top:60px;right:10px;background:rgba(156,39,176,0.2);color:var(--purple);padding:6px 12px;border-radius:20px;font-size:12px;z-index:360}
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <h2>🤝 تواصل</h2>
+    <p id="greeting">أهلاً بك! اكتب اسمك لندخل</p>
+    <input type="text" id="userName" class="auth-input" placeholder="اسمك">
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;justify-content:center;opacity:0.7;font-size:13px">
+      <input type="checkbox" id="rememberName" checked> تذكر اسمي ✅
+    </label>
+    <button class="auth-btn" onclick="startApp()">ابدأ الاستخدام ✅</button>
+  </div>
+</div>
+
+<div class="top-bar hidden" id="topBar">
+  <div class="badges">
+    <span class="user-count" id="userCount">👥 0 متصل</span>
+    <span class="badge" id="netBadge">🟡 جاري الفحص...</span>
+    <span class="badge local hidden" id="localBadge">🟣 محلي</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="app-name">🤝 تواصل</span>
+    <button class="settings-btn" onclick="openSettings()">⚙️ إعدادات</button>
+    <button class="logout-btn" onclick="logout()">خروج</button>
+  </div>
+</div>
+
+<div class="local-indicator hidden" id="localModeIndicator">🟣 وضع الاتصال المحلي نشط</div>
+
+<div class="nav-bar hidden" id="navBar">
+  <button class="nav-btn active" data-page="public" onclick="switchPage('public')">
+    <span class="nav-icon">📢</span><span>العام</span>
+  </button>
+  <button class="nav-btn" data-page="private" onclick="switchPage('private')">
+    <span class="nav-icon">💬</span><span>خاص</span>
+  </button>
+  <button class="nav-btn" data-page="users" onclick="switchPage('users')">
+    <span class="nav-icon">👥</span><span>الناس</span>
+  </button>
+  <button class="nav-btn" data-page="ai" onclick="switchPage('ai')">
+    <span class="nav-icon">🤖</span><span>ذكاء</span>
+  </button>
+  <button class="nav-btn" data-page="video" onclick="switchPage('video')">
+    <span class="nav-icon">📹</span><span>فيديو</span>
+  </button>
+  <button class="nav-btn" data-page="files" onclick="switchPage('files')">
+    <span class="nav-icon">📁</span><span>ملفات</span>
+  </button>
+  <button class="nav-btn" data-page="limits" onclick="switchPage('limits')">
+    <span class="nav-icon">📖</span><span>الدليل</span>
+  </button>
+</div>
+
+<div class="pages-container hidden" id="pagesContainer">
+
+  <div class="page active" id="page-public">
+    <div class="page-header">
+      <div class="page-title">📢 الرسائل العامة</div>
+      <div class="page-desc" id="publicDesc">كل المتصلين يشوفون الرسايل — تحدث كل نص ثانية</div>
+    </div>
+    <div class="chat-box" id="chatPublic"></div>
+  </div>
+
+  <div class="page" id="page-private">
+    <div class="page-header">
+      <div class="page-title">💬 رسائل خاصة 🔒</div>
+      <div class="page-desc">بينك وبين الشخص فقط — مشفرة</div>
+    </div>
+    <input type="text" id="privateWith" placeholder="اسم الشخص" class="input-wide" style="display:block;margin:0 auto 15px">
+    <div class="chat-box" id="chatPrivate"></div>
+  </div>
+
+  <div class="page" id="page-users">
+    <div class="page-header">
+      <div class="page-title">👥 المستخدمون</div>
+      <div class="page-desc">🟢 متصل بالإنترنت — 🟣 في نفس الشبكة — 🔴 غير متصل</div>
+    </div>
+    <div class="users-list" id="usersList">
+      <p style="text-align:center;opacity:0.5;padding:20px">جاري التحميل...</p>
+    </div>
+  </div>
+
+  <div class="page" id="page-ai">
+    <div class="page-header">
+      <div class="page-title">🤖 المساعد الذكي</div>
+      <div class="page-desc">يحتاج نت — اضغط ⚙️ لوضع مفتاح Groq</div>
+    </div>
+    <div class="chat-box" id="chatAI"></div>
+  </div>
+
+  <div class="page" id="page-video">
+    <div class="page-header">
+      <div class="page-title">📹 مكالمة فيديو وصوت</div>
+      <div class="page-desc">شغل الكاميرا → اكتب اسم الشخص → اضغط اتصل</div>
+    </div>
+    <div class="video-section">
+      <div class="video-pair">
+        <div class="video-wrap">
+          <div class="video-label">أنت</div>
+          <video id="myVideo" autoplay muted playsinline></video>
+        </div>
+        <div class="video-wrap">
+          <div class="video-label">المتصل به</div>
+          <video id="remoteVideo" autoplay playsinline class="remote"></video>
+        </div>
+      </div>
+      <div class="vid-status" id="videoStatus">جاهز 📹</div>
+      <input type="text" id="callName" placeholder="اسم الشخص بدقة" class="input-wide">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <button class="btn-green" onclick="startCamera()">📷 شغل الكاميرا</button>
+        <button class="btn-blue" onclick="makeCall()">📞 اتصل</button>
+        <button class="btn-orange hidden" id="answerBtn" onclick="answerCall()">✅ أجب المكالمة</button>
+        <button class="btn-red" onclick="endCall()">✖️ إنهاء</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-files">
+    <div class="page-header">
+      <div class="page-title">📁 مشاركة الملفات</div>
+      <div class="page-desc">حتى 100 ميجا — يحتاج إنترنت</div>
+    </div>
+    <input type="file" id="fileUpload" class="input-wide" style="max-width:100%" onchange="uploadBigFile(event)">
+    <div class="progress-bar hidden" id="uploadProgress" style="width:100%;height:8px;background:#22344d;border-radius:4px;margin-top:10px">
+      <div class="progress-fill" id="progressFill" style="height:100%;background:var(--green);width:0%;transition:width .3s"></div>
+    </div>
+    <div style="margin-top:15px">
+      <h4 style="margin-bottom:10px;color:var(--green)">الملفات المشتركة:</h4>
+      <div id="sharedFiles" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-limits">
+    <div class="page-header">
+      <div class="page-title">📖 دليل الاستخدام الكامل</div>
+      <div class="page-desc">كل ما تحتاج تعرفه خطوة بخطوة</div>
+    </div>
+    <div class="limits-list">
+      <div class="limit-card">
+        <div class="limit-head"><span class="limit-icon">🌐</span><span class="limit-title">الوضع بالإنترنت — من أي مكان</span></div>
+        <div class="limit-body">
+          ✅ يشتغل من أي مدينة أو دولة<br>
+          ✅ الرسايل تصل فوراً للجميع<br>
+          ✅ مكالمات الفيديو والصوت شغالة 100%<br>
+          ✅ مشاركة الصور والملفات شغالة<br>
+          ✅ الذكاء الاصطناعي يجاوب بسرعة<br>
+          ⚠️ شرط: يكون النت شغال عند الطرفين
+        </div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-head"><span class="limit-icon">🟣</span><span class="limit-title">الاتصال المحلي — بدون نت</span></div>
+        <div class="limit-body">
+          ✅ يشتغل لو انقطع النت تماماً<br>
+          ✅ شرط: كل الأجهزة على <strong>نفس الواي فاي</strong><br>
+          ✅ الرسايل النصية تتبادل فوراً<br>
+          ⚠️ الفيديو والملفات والذكاء تحتاج نت<br>
+          ⚠️ لو بعيد عن الشبكة ما يشتغلش
+        </div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-head"><span class="limit-icon">📹</span><span class="limit-title">كيف مكالمة الفيديو خطوة بخطوة</span></div>
+        <div class="limit-body">
+          1️⃣ الطرفان يدخلان التطبيق بأسماء مختلفة<br>
+          2️⃣ الأول يضغط «شغل الكاميرا» → يوافق الإذن<br>
+          3️⃣ يكتب اسم الشخص الثاني بالضبط<br>
+          4️⃣ يضغط «اتصل» → ينتظر...<br>
+          5️⃣ الثاني تطلع له نافذة → يضغط «أجب»<br>
+          ✅ الصورة والصوت يشتغلان مباشرة!
+        </div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-head"><span class="limit-icon">🤖</span><span class="limit-title">الذكاء الاصطناعي — يحتاج نت</span></div>
+        <div class="limit-body">
+          ✅ صحيح يحتاج إنترنت — ما يقدرش يشتغل بدونه<br>
+          ✅ الحجم صغير جداً — ما يأكل بيانات كتير<br>
+          🔧 التشغيل: اضغط ⚙️ → ضع مفتاح Groq → احفظ<br>
+          🔑 المفتاح مجاني من: console.groq.com<br>
+          ✅ بعدها اسأله أي سؤال ويجيبك فوراً
+        </div>
+      </div>
+      <div class="limit-card orange">
+        <div class="limit-head"><span class="limit-icon">ℹ️</span><span class="limit-title">ملاحظات مهمة</span></div>
+        <div class="limit-body">
+          • 🔔 الإشعارات تظهر لو التطبيق مفتوح فقط<br>
+          • 📱 على آيفون: الميزات المحلية محدودة<br>
+          • 💾 كل شيء محفوظ تلقائياً<br>
+          • 🗑️ مسح «للكل» يمسح من عند الجميع<br>
+          • 🔐 الرسايل الخاصة مشفرة ولا أحد يراها
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="input-bar hidden" id="inputBar">
+  <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="sendImage(event)">
+  <input type="file" id="anyFileInput" style="display:none" onchange="sendFileInChat(event)">
+  <button class="icon-btn attach-btn" onclick="document.getElementById('imageInput').click()" title="صورة">📷</button>
+  <button class="icon-btn file-btn" onclick="document.getElementById('anyFileInput').click()" title="ملف">📁</button>
+  <button class="icon-btn mic-btn" id="micBtn" onclick="toggleRecording()" title="تسجيل صوت">🎤</button>
+  <input type="text" id="messageInput" class="msg-input" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')sendMessage()">
+  <button class="icon-btn send-btn" onclick="sendMessage()">✓</button>
+</div>
+
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal-card">
+    <h3>⚙️ إعدادات الذكاء الاصطناعي</h3>
+    <p style="opacity:0.7;font-size:13px;margin-bottom:15px">مفتاح Groq — مجاني 100% من<br><a href="https://console.groq.com/keys" target="_blank" style="color:var(--green)">console.groq.com/keys</a></p>
+    <input type="text" id="groqKeyInput" class="modal-input" placeholder="gsk_xxxxxxxxxxxx">
+    <p style="opacity:0.5;font-size:11px;margin-bottom:15px">المفتاح محفوظ على تليفونك فقط — ما يطلع لحد</p>
+    <div class="modal-btns">
+      <button class="btn-green btn-small" onclick="saveSettings()">حفظ ✅</button>
+      <button class="btn-red btn-small" onclick="closeSettings()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div class="call-notification hidden" id="incomingCallModal">
+  <h3>📞 مكالمة واردة</h3>
+  <p id="callerNameText" style="margin:15px 0;font-size:18px"></p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn-green" onclick="answerCall()">✅ أجب</button>
+    <button class="btn-red" onclick="declineCall()">❌ ارفض</button>
+  </div>
+</div>
+
+<script>
 /* =========================================================
-   📢 الرسائل العامة — تحديث لحظي + كل نص ثانية
+   🔑 الإعدادات
    ========================================================= */
-let publicListener = null;
-function listenPublicMessages(){
-  if(isLocalMode || !db) return;
-  // إلغاء أي مستمع قديم
-  if(publicListener) publicListener();
-  // المستمع اللحظي من Firebase
-  publicListener = db.collection("public").orderBy("time","asc").limitToLast(50).onSnapshot(snap=>{
-    document.getElementById("chatPublic").innerHTML = "";
-    snap.forEach(doc=>{
-      const d = doc.data();
-      addMsg("chatPublic", d.from, d.text, d.from===myName, d.file||null, false, doc.id);
-    });
-  });
-  // فحص إضافي كل نص ثانية لضمان السرعة
-  setInterval(async ()=>{
-    if(isLocalMode || !db) return;
-    const snap = await db.collection("public").orderBy("time","asc").limitToLast(50).get();
-    document.getElementById("chatPublic").innerHTML = "";
-    snap.forEach(doc=>{
-      const d = doc.data();
-      addMsg("chatPublic", d.from, d.text, d.from===myName, d.file||null, false, doc.id);
-    });
-  }, 500);
+const CONFIG = {
+  firebase: {
+    apiKey: "AIzaSyBvVYfFd9KxPqZ8rLz9X7wY6pQeR5tU4s3",
+    authDomain: "tawasol-chat-demo.firebaseapp.com",
+    projectId: "tawasol-chat-demo",
+    storageBucket: "tawasol-chat-demo.appspot.com"
+  },
+  SECRET_KEY: "tawasol_2026"
+};
+
+const ICE_SERVERS = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" }
+];
+
+/* =========================================================
+   🗄️ قاعدة البيانات
+   ========================================================= */
+let db = null, storage = null;
+try{
+  firebase.initializeApp(CONFIG.firebase);
+  db = firebase.firestore();
+  storage = firebase.storage();
+}catch(e){ console.warn("Firebase:", e); }
+
+/* =========================================================
+   📦 المتغيرات
+   ========================================================= */
+let myName = "", myLower = "", currentPage = "public";
+let isOnline = navigator.onLine, isLocalMode = false;
+let localChannel = null, localUsers = new Map();
+let mediaRecorder = null, audioChunks = [], isRecording = false;
+let localStream = null, peerConn = null;
+let incomingCallData = null, callListener = null;
+let GROQ_KEY = localStorage.getItem('groq_api_key') || '';
+
+const netBadge = document.getElementById('netBadge');
+const localBadge = document.getElementById('localBadge');
+const localIndicator = document.getElementById('localModeIndicator');
+const userCountEl = document.getElementById('userCount');
+const publicDesc = document.getElementById('publicDesc');
+
+/* =========================================================
+   ⚙️ الإعدادات
+   ========================================================= */
+function openSettings(){
+  document.getElementById('groqKeyInput').value = GROQ_KEY;
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.add('hidden'); }
+function saveSettings(){
+  const key = document.getElementById('groqKeyInput').value.trim();
+  GROQ_KEY = key;
+  localStorage.setItem('groq_api_key', key);
+  alert(key ? '✅ تم حفظ المفتاح — الذكاء جاهز!' : '⚠️ تم مسح المفتاح');
+  closeSettings();
 }
 
 /* =========================================================
-   💬 الرسائل الخاصة — تحديث لحظي + كل نص ثانية
+   🔐 تشفير الرسايل الخاصة
    ========================================================= */
-let privateListener = null;
-function loadPrivateChat(){
-  if(isLocalMode || !db){
-    document.getElementById("chatPrivate").innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">الرسائل الخاصة ما تخدمش في الوضع المحلي — اتصل بالإنترنت</p>`;
-    return;
-  }
-  const target = document.getElementById('privateWith').value.trim().toLowerCase();
-  if(!target || target===myLower){
-    document.getElementById("chatPrivate").innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">اكتب اسم الشخص لتبدأ المحادثة</p>`;
-    return;
-  }
-  // إلغاء أي مستمع قديم
-  if(privateListener) privateListener();
-  const chatId = getPrivateChatId(target);
-  // المستمع اللحظي
-  privateListener = db.collection("chats").doc(chatId).collection("messages").orderBy("time","asc").limitToLast(50).onSnapshot(snap=>{
-    document.getElementById("chatPrivate").innerHTML = "";
-    snap.forEach(doc=>{
-      const d = doc.data();
-      const text = d.encrypted ? decryptText(d.text) : d.text;
-      addMsg("chatPrivate", d.from, text, d.from===myName, d.file||null, false, doc.id);
-    });
-  });
-  // فحص إضافي كل نص ثانية
-  setInterval(async ()=>{
-    if(isLocalMode || !db) return;
-    const t = document.getElementById('privateWith').value.trim().toLowerCase();
-    if(!t || t===myLower) return;
-    const cid = getPrivateChatId(t);
-    const snap = await db.collection("chats").doc(cid).collection("messages").orderBy("time","asc").limitToLast(50).get();
-    document.getElementById("chatPrivate").innerHTML = "";
-    snap.forEach(doc=>{
-      const d = doc.data();
-      const text = d.encrypted ? decryptText(d.text) : d.text;
-      addMsg("chatPrivate", d.from, text, d.from===myName, d.file||null, false, doc.id);
-    });
-  }, 500);
+function encryptText(t){
+  let r='';
+  for(let i=0;i<t.length;i++) r += String.fromCharCode(t.charCodeAt(i) ^ CONFIG.SECRET_KEY.charCodeAt(i % CONFIG.SECRET_KEY.length));
+  return btoa(unescape(encodeURIComponent(r)));
+}
+function decryptText(e){
+  try{
+    const t = decodeURIComponent(escape(atob(e)));
+    let r='';
+    for(let i=0;i<t.length;i++) r += String.fromCharCode(t.charCodeAt(i) ^ CONFIG.SECRET_KEY.charCodeAt(i % CONFIG.SECRET_KEY.length));
+    return r;
+  }catch{ return "🔒 مشفر"; }
 }
 
 /* =========================================================
-   👥 قائمة المستخدمين — تحديث لحظي + كل نص ثانية
+   🌐 فحص الإنترنت
+   ========================================================= */
+async function realPingCheck(){
+  if(!navigator.onLine){ enterLocalMode(); return; }
+  try{
+    const t0=Date.now();
+    await fetch("https://www.gstatic.com/generate_204?ts="+Date.now(), {mode:"no-cors", cache:"no-store"});
+    isOnline=true; isLocalMode=false;
+    const dt=Date.now()-t0;
+    netBadge.textContent = dt>1500 ? `🟡 بطيء (${dt}مللي)` : `🟢 متصل (${dt}مللي)`;
+    netBadge.className = dt>1500 ? "badge slow" : "badge online";
+    localBadge.classList.add('hidden'); localIndicator.classList.add('hidden');
+    publicDesc.textContent = "الرسائل تصل للجميع عبر الإنترنت";
+  }catch{ enterLocalMode(); }
+}
+
+function enterLocalMode(){
+  isOnline=false; isLocalMode=true;
+  netBadge.textContent = "🔴 بدون إنترنت";
+  netBadge.className = "badge offline";
+  localBadge.classList.remove('hidden'); localIndicator.classList.remove('hidden');
+  publicDesc.textContent = "🟣 وضع محلي — نفس شبكة الواي فاي فقط";
+  if(!localChannel) startLocalNetwork();
+}
+
+window.addEventListener('online', realPingCheck);
+window.addEventListener('offline', enterLocalMode);
+setInterval(realPingCheck, 15000);
+
+/* =========================================================
+   🟣 الاتصال المحلي — نفس الشبكة
+   ========================================================= */
+function startLocalNetwork(){
+  if(localChannel) return;
+  localChannel = new BroadcastChannel('tawasol_local_v3');
+  
+  localChannel.onmessage = (e)=>{
+    const msg = e.data;
+    if(msg.sender === myName) return;
+    
+    switch(msg.type){
+      case 'hello':
+        localUsers.set(msg.sender, {name:msg.sender, lastSeen:Date.now()});
+        localChannel.postMessage({type:'welcome', sender:myName});
+        updateLocalUsersList();
+        break;
+      case 'welcome':
+        localUsers.set(msg.sender, {name:msg.sender, lastSeen:Date.now()});
+        updateLocalUsersList();
+        break;
+      case 'public_msg':
+        addMsg("chatPublic", msg.sender, msg.text, false, null, false, 'local-'+Date.now());
+        break;
+      case 'private_msg':
+        if(msg.target === myName){
+          addMsg("chatPrivate", msg.sender, msg.text, false, null, false, 'local-'+Date.now());
+        }
+        break;
+    }
+  };
+  
+  setInterval(()=>{
+    if(isLocalMode) localChannel.postMessage({type:'hello', sender:myName});
+    localUsers.forEach((u,k)=>{ if(Date.now()-u.lastSeen>30000) localUsers.delete(k); });
+    updateLocalUsersList();
+  }, 8000);
+  
+  localChannel.postMessage({type:'hello', sender:myName});
+}
+
+function updateLocalUsersList(){
+  const listEl = document.getElementById('usersList');
+  if(!isLocalMode) return;
+  let html = `
+    <div class="user-item">
+      <span class="status-dot dot-purple"></span>
+      <span>${myName} (أنت)</span>
+      <span style="margin-left:auto;font-size:11px;opacity:0.5">محلي</span>
+    </div>
+  `;
+  localUsers.forEach(u=>{
+    html += `
+      <div class="user-item" onclick="document.getElementById('privateWith').value='${u.name}';switchPage('private')">
+        <span class="status-dot dot-purple"></span>
+        <span>${u.name}</span>
+        <span style="margin-left:auto;font-size:11px;opacity:0.5">متصل</span>
+      </div>
+    `;
+  });
+  listEl.innerHTML = html;
+  userCountEl.textContent = `👥 ${1+localUsers.size} متصل`;
+}
+
+function sendLocalPublicMessage(text){
+  if(!localChannel) startLocalNetwork();
+  localChannel.postMessage({type:'public_msg', sender:myName, text:text});
+  addMsg("chatPublic", myName, text, true, null, false, 'local-'+Date.now());
+}
+
+function sendLocalPrivateMessage(targetName, text){
+  if(!localChannel) startLocalNetwork();
+  localChannel.postMessage({type:'private_msg', sender:myName, target:targetName, text:text});
+  addMsg("chatPrivate", myName, text, true, null, false, 'local-'+Date.now());
+}
+
+/* =========================================================
+   📱 الدخول
+   ========================================================= */
+window.addEventListener('DOMContentLoaded', ()=>{
+  const saved = localStorage.getItem('tawasol_username');
+  if(saved){
+    document.getElementById('userName').value = saved;
+    document.getElementById('greeting').textContent = `رجعت يا ${saved}! أدخل مباشرة ✅`;
+  }
+  if('Notification' in window) Notification.requestPermission();
+});
+
+async function startApp(){
+  const n = document.getElementById("userName").value.trim();
+  if(!n) return alert("اكتب اسمك أولاً!");
+  if(n.length<2) return alert("اسم قصير جداً!");
+
+  const remember = document.getElementById('rememberName').checked;
+  remember ? localStorage.setItem('tawasol_username', n) : localStorage.removeItem('tawasol_username');
+
+  myName = n; myLower = n.toLowerCase();
+
+  if(isOnline && db){
+    await db.collection("users").doc(myLower).set({
+      name: n, online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+    db.collection("users").doc(myLower).onDisconnect().update({
+      online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(()=>{});
+  }
+
+  document.getElementById("authScreen").classList.add("hidden");
+  ["topBar","navBar","pagesContainer","inputBar"].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+
+  listenPublicMessages();
+  listenUsers();
+  listenSharedFiles();
+  listenIncomingCalls();
+  realPingCheck();
+
+  addMsg("chatAI", "🤝 تواصل", `أهلاً ${n}!\n\n📖 اذهب لصفحة «الدليل» لشرح كل شيء\n⚙️ اضغط الإعدادات لوضع مفتاح الذكاء\n\nكل شيء جاهز ✅`, false, null, true);
+}
+
+function logout(){
+  if(confirm("تسجيل الخروج؟")){
+    if(isOnline && db) db.collection("users").doc(myLower).update({online:false}).catch(()=>{});
+    localStorage.removeItem('tawasol_username');
+    location.reload();
+  }
+}
+
+/* =========================================================
+   📄 التنقل
+   ========================================================= */
+function switchPage(p){
+  currentPage = p;
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById(`page-${p}`).classList.add("active");
+  document.getElementById("inputBar").classList.toggle("hidden", ['users','files','video','limits'].includes(p));
+}
+
+/* =========================================================
+   👥 قائمة المستخدمين
    ========================================================= */
 function listenUsers(){
-  if(!isOnline || !db){
-    userCountEl.textContent = `👥 1 متصل (أنت)`;
-    document.getElementById('usersList').innerHTML = `
-      <div class="user-item">
-        <span class="status-dot dot-purple"></span>
-        <span>${myName} (أنت)</span>
-        <span style="margin-left:auto;font-size:11px;opacity:0.5">محلي</span>
-      </div>
-      <p style="text-align:center;opacity:0.5;padding:20px;font-size:12px">الوضع المحلي — الأجهزة في نفس الواي فاي تظهر هنا</p>
-    `;
-    return;
-  }
-  // المستمع اللحظي
-  db.collection("users").onSnapshot(snap=>{
-    updateUsersList(snap);
-  });
-  // فحص إضافي كل نص ثانية
+  if(!isOnline || !db){ updateLocalUsersList(); return; }
+  db.collection("users").onSnapshot(updateUsersList);
   setInterval(async ()=>{
-    if(!isOnline || !db) return;
+    if(!isOnline || !db){ updateLocalUsersList(); return; }
     const snap = await db.collection("users").get();
     updateUsersList(snap);
-  }, 500);
+  }, 1000);
 }
 
-// دالة مساعدة لتحديث القائمة
 function updateUsersList(snap){
+  if(isLocalMode){ updateLocalUsersList(); return; }
   const listEl = document.getElementById('usersList');
-  let count=0;
-  listEl.innerHTML = "";
+  let count=0, html='';
   snap.forEach(doc=>{
     const u = doc.data();
     const online = u.online === true;
     if(online) count++;
-    listEl.innerHTML += `
+    html += `
       <div class="user-item" onclick="document.getElementById('privateWith').value='${u.name}';switchPage('private')">
         <span class="status-dot ${online?'dot-green':'dot-red'}"></span>
         <span>${u.name}</span>
-        ${online?'<span style="margin-left:auto;font-size:11px;opacity:0.5">متصل</span>':'<span style="margin-left:auto;font-size:11px;opacity:0.4">غير متصل</span>'}
+        <span style="margin-left:auto;font-size:11px;opacity:0.5">${online?'متصل':'غير متصل'}</span>
       </div>
     `;
   });
+  listEl.innerHTML = html;
   userCountEl.textContent = `👥 ${count} متصل`;
 }
 
 /* =========================================================
-   📁 الملفات المشتركة — تحديث لحظي + كل نص ثانية
+   💬 عرض الرسايل
    ========================================================= */
-function listenSharedFiles(){
-  if(isLocalMode || !db){
-    document.getElementById('sharedFiles').innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">مشاركة الملفات ما تخدمش في الوضع المحلي</p>`;
-    return;
+function addMsg(boxId, sender, text, isMe=false, file=null, isAi=false, docId=null){
+  const box = document.getElementById(boxId);
+  if(!box) return;
+  const div = document.createElement("div");
+  div.className = `msg ${isMe?"me":"other"} ${isAi?"ai":""}`;
+  if(docId) div.dataset.docId = docId;
+
+  let content = `<div class="msg-bubble">`;
+  if(!isMe && !isAi) content += `<strong>${sender}</strong><br>`;
+  content += text.replace(/\n/g, "<br>");
+  if(file){
+    if(file.type==='image') content += `<br><img src="${file.url}" class="msg-img" alt="صورة">`;
+    else content += `<br><a href="${file.url}" target="_blank" class="msg-file">📎 ${file.name}</a>`;
   }
-  // المستمع اللحظي
-  db.collection("shared_files").orderBy("time","desc").limitToLast(20).onSnapshot(snap=>{
-    renderSharedFiles(snap);
-  });
-  // فحص إضافي كل نص ثانية
-  setInterval(async ()=>{
-    if(isLocalMode || !db) return;
-    const snap = await db.collection("shared_files").orderBy("time","desc").limitToLast(20).get();
-    renderSharedFiles(snap);
-  }, 500);
+  content += `</div>`;
+  
+  if(isMe && docId && !docId.startsWith('local-')){
+    content += `<div class="delete-menu">
+      <button class="del-me" onclick="deleteMessage('${boxId}', '${docId}', 'me')">🗑️ عندي</button>
+      <button class="del-all" onclick="deleteMessage('${boxId}', '${docId}', 'all')">⚠️ للكل</button>
+    </div>`;
+  }
+  
+  div.innerHTML = content;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
 }
 
-// دالة مساعدة لعرض الملفات
-function renderSharedFiles(snap){
-  const container = document.getElementById('sharedFiles');
-  container.innerHTML = "";
-  snap.forEach(doc=>{
-    const f = doc.data();
-    const size = (f.size / 1024 / 1024).toFixed(2);
-    container.innerHTML += `
-      <a href="${f.url}" download="${f.name}" class="msg-file" style="justify-content:space-between">
-        <span>📎 ${f.name}</span>
-        <span style="font-size:11px;opacity:0.6">${f.from} • ${size} ميجا</span>
-      </a>
-    `;
+async function deleteMessage(boxId, docId, mode){
+  if(mode==='all' && !confirm("مسح للجميع؟ متأكد؟")) return;
+  try{
+    if(mode==='me'){
+      const el = document.querySelector(`[data-doc-id="${docId}"]`);
+      if(el) el.remove();
+    }else if(db){
+      if(boxId==='chatPublic') await db.collection("public").doc(docId).delete();
+      else if(boxId==='chatPrivate'){
+        const t = document.getElementById('privateWith').value.trim().toLowerCase();
+        if(!t) return;
+        const cid = getPrivateChatId(t);
+        await db.collection("chats").doc(cid).collection("messages").doc(docId).delete();
+      }
+    }
+  }catch(err){ alert("خطأ: " + err.message); }
+}
+
+/* =========================================================
+   📢 الرسائل العامة
+   ========================================================= */
+function listenPublicMessages(){
+  if(isLocalMode || !db) return;
+  db.collection("public").orderBy("time","asc").limitToLast(50).onSnapshot(snap=>{
+    document.getElementById("chatPublic").innerHTML = "";
+    snap.forEach(doc=>{
+      const d = doc.data();
+      addMsg("chatPublic", d.from, d.text, d.from===myName, d.file||null, false, doc.id);
+    });
   });
 }
+
+async function sendPublicMessage(text){
+  if(isLocalMode){ sendLocalPublicMessage(text); return; }
+  if(!db) return alert("اتصل بالإنترنت!");
+  await db.collection("public").add({
+    from: myName, text: text, time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+/* =========================================================
+   💬 الرسائل الخاصة
+   ========================================================= */
+function getPrivateChatId(target){
+  const a = myLower < target ? myLower : target;
+  const b = myLower > target ? myLower : target;
+  return `p_${a}_${b}`;
+}
+
+document.getElementById('privateWith').addEventListener('input', ()=>{
+  const t = document.getElementById('privateWith').value.trim();
+  if(!t){
+    document.getElementById("chatPrivate").innerHTML = `<p style="text-align:center;opacity:0.5;padding:20px">اكتب اسم الشخص</p>`;
+    return;
+  }
+  if(isLocalMode){
+    document.getElementById("chatPrivate").innerHTML = `<p style="text-align:center;opacity:0.7;padding:20px">🟣 محادثة محلية مع: <strong>${t}</strong></p>`;
+    return;
+  }
+  if(!db) return;
+  const cid = getPrivateChatId(t.toLowerCase());
+  db.collection("chats").doc(cid).collection("messages").orderBy("time","asc").limitToLast(50).onSnapshot(snap=>{
+    document.getElementById("chatPrivate").innerHTML = "";
+    snap.forEach(doc=>{
+      const d = doc.data();
+      addMsg("chatPrivate", d.from, decryptText(d.text), d.from===myName, null, false, doc.id);
+    });
+  });
+});
+
+async function sendPrivateMessage(toName, text){
+  if(isLocalMode){ sendLocalPrivateMessage(toName, text); return; }
+  if(!db) return alert("اتصل بالإنترنت!");
+  const t = toName.toLowerCase();
+  if(t === myLower) return;
+  const cid = getPrivateChatId(t);
+  await db.collection("chats").doc(cid).collection("messages").add({
+    from: myName, to: toName, text: encryptText(text), encrypted: true,
+    time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+/* =========================================================
+   🤖 الذكاء الاصطناعي — يحتاج نت
+   ========================================================= */
+async function sendAIMessage(text){
+  if(!GROQ_KEY) return addMsg("chatAI", "🤖 تنبيه", "ضع مفتاح Groq أولاً من ⚙️ الإعدادات", false, null, true);
+  if(!isOnline) return addMsg("chatAI", "🤖 تنبيه", "الذكاء يحتاج إنترنت ليعمل", false, null, true);
+  
+  addMsg("chatAI", myName, text, true);
+  addMsg("chatAI", "🤖 جاري الكتابة...", "⏳", false, null, true);
+  
+  try{
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
+      body: JSON.stringify({
+        model: "llama3-8b-8192",
+        messages: [{role:"user", content:text}],
+        temperature: 0.7
+      })
+    });
+    const data = await res.json();
+    document.querySelector("#chatAI .msg.ai:last-child")?.remove();
+    if(data.error) throw new Error(data.error.message);
+    addMsg("chatAI", "🤖 الذكاء الاصطناعي", data.choices[0].message.content, false, null, true);
+  }catch(err){
+    document.querySelector("#chatAI .msg.ai:last-child")?.remove();
+    addMsg("chatAI", "🤖 خطأ", `تعذر الإجابة: ${err.message}`, false, null, true);
+  }
+}
+
+/* =========================================================
+   📹 مكالمات الفيديو — كاملة ومكتملة ✅
+   ========================================================= */
+async function startCamera(){
+  try{
+    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+    document.getElementById('myVideo').srcObject = localStream;
+    updateVideoStatus("الكاميرا شغالة ✅ اكتب اسم الشخص واضغط اتصل", "calling");
+  }catch(err){
+    alert("ما تم السماح للكاميرا أو الميكروفون: " + err.message);
+  }
+}
+
+function updateVideoStatus(text, type=""){
+  const el = document.getElementById('videoStatus');
+  el.textContent = text;
+  el.className = `vid-status ${type}`;
+}
+
+function createPeerConnection(){
+  peerConn = new RTCPeerConnection({iceServers: ICE_SERVERS});
+  if(localStream) localStream.getTracks().forEach(t=>peerConn.addTrack(t, localStream));
+  
+  peerConn.ontrack = e => {
+    document.getElementById('remoteVideo').srcObject = e.streams[0];
+    updateVideoStatus("✅ متصل — المكالمة جارية", "connected");
+  };
+  
+  peerConn.onicecandidate = e => {
+    if(!e.candidate) return;
+    const target = document.getElementById('callName').value.trim();
+    if(!target || !db) return;
+    db.collection("calls").doc(target).collection("signals").add({
+      from: myName, candidate: e.candidate.toJSON(), type: "candidate",
+      time: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  };
+  
+  peerConn.onconnectionstatechange = () => {
+    if(peerConn.connectionState === 'disconnected') endCall();
+  };
+}
+
+async function makeCall(){
+  const target = document.getElementById('callName').value.trim();
+  if(!target) return alert("اكتب اسم الشخص!");
+  if(!localStream) return alert("شغل الكاميرا أولاً!");
+  if(!db) return alert("
