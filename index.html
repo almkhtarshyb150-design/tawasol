@@ -3,119 +3,477 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تواصل — الذكاء الاصطناعي</title>
+  <meta name="theme-color" content="#0f1b2b">
+  <title>Tawasol — تواصل 🤝</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-storage-compat.min.js"></script>
+
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    body{background:#0f1b2b;color:#fff;padding:20px;max-width:700px;margin:0 auto}
-    .box{background:#1a2c42;border-radius:12px;padding:20px;margin-bottom:15px}
-    input,textarea{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;background:#2a3c52;color:#fff;font-size:16px}
-    button{background:#00c49a;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:16px;cursor:pointer;width:100%;margin-top:8px}
-    button:hover{background:#00b08a}
-    .msg{padding:10px 14px;border-radius:10px;margin:8px 0;max-width:90%}
-    .user{background:#1976d2;margin-left:auto}
-    .ai{background:#2a3c52;margin-right:auto}
-    .status{color:#00c49a;margin:10px 0}
-    .warning{color:#ff9800}
-    .error{color:#ff6b6b}
-    .hidden{display:none}
+    :root{
+      --bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;
+      --green:#00c49a;--red:#ef4444;--blue:#1976d2;
+      --my-msg:#005c4b;--other-msg:#202c33
+    }
+    body{background:var(--bg);color:var(--text);min-height:100vh}
+    .container{max-width:700px;margin:0 auto;padding:12px}
+
+    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 15px}
+    .mode{padding:6px 12px;border-radius:20px;font-size:13px;background:rgba(0,196,154,0.2);color:var(--green)}
+    .title{font-size:20px;font-weight:bold}
+
+    .login{text-align:center;padding-top:60px}
+    .login h1{margin-bottom:20px}
+    input{width:100%;background:rgba(255,255,255,0.08);border:none;color:white;padding:14px;border-radius:10px;margin:8px 0;font-size:16px}
+    button{border:none;border-radius:10px;font-size:15px;cursor:pointer}
+    .btn-main{background:var(--green);color:white;padding:12px 24px;margin-top:10px}
+    .btn-delete{background:var(--red);color:white;padding:6px 10px;font-size:12px;border-radius:6px}
+    .btn-end{background:var(--red);color:white;padding:10px 16px;margin:4px}
+    .btn-accept{background:var(--green);color:white;padding:10px 16px;margin:4px}
+
+    .home{display:none}
+    .greeting{font-size:18px;margin-bottom:20px}
+    .card{background:var(--card);border-radius:12px;padding:18px;margin-bottom:12px;cursor:pointer;transition:0.2s}
+    .card:hover{transform:translateY(-2px);background:#233857}
+    .users-list{margin-top:10px}
+    .user-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(255,255,255,0.05);border-radius:10px;margin:6px 0;cursor:pointer}
+    .dot{width:12px;height:12px;border-radius:50%}
+    .dot-green{background:var(--green);box-shadow:0 0 6px var(--green)}
+    .dot-red{background:var(--red)}
+
+    .chat{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;padding:12px;overflow-y:auto}
+    .chat-header{display:flex;align-items:center;justify-content:space-between;padding:10px 0 15px;border-bottom:1px solid rgba(255,255,255,0.1)}
+    .back-btn{background:transparent;color:white;font-size:16px;padding:8px 12px}
+    .chat-name{font-size:17px;font-weight:bold}
+    .call-buttons{display:flex;gap:8px}
+    .call-btn{background:rgba(255,255,255,0.1);color:white;padding:8px 10px;border-radius:50%;font-size:18px}
+    
+    .msgs{padding:10px 0 90px}
+    .msg{max-width:75%;padding:10px 14px;border-radius:18px;margin-bottom:8px;position:relative}
+    .me{background:var(--my-msg);margin-left:auto;border-bottom-right-radius:4px}
+    .other{background:var(--other-msg);margin-right:auto;border-bottom-left-radius:4px}
+    .time{font-size:10px;opacity:0.6;margin-top:4px;text-align:right}
+    
+    .input-bar{position:fixed;bottom:0;left:0;right:0;padding:10px;background:var(--bg);border-top:1px solid rgba(255,255,255,0.1);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .input-bar input{flex:1;margin:0;min-width:150px}
+    .send-btn{background:var(--blue);color:white;padding:12px 14px}
+    .voice-btn{background:var(--green);color:white;padding:12px 14px}
+    .file-btn{background:rgba(255,255,255,0.15);color:white;padding:12px 14px;border-radius:50%}
+    .hidden{display:none !important}
+
+    .file-preview{margin:6px 0;padding:8px;background:rgba(255,255,255,0.08);border-radius:8px}
+    .file-preview img{max-width:200px;border-radius:6px;margin-top:4px}
+    a.download-link{color:var(--green);text-decoration:none}
+
+    .call-screen{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column}
+    .video-container{flex:1;position:relative;background:#111}
+    .remote-video{width:100%;height:100%;object-fit:cover}
+    .local-video{position:absolute;bottom:80px;right:12px;width:120px;height:160px;border-radius:10px;border:2px solid white;object-fit:cover;background:#222}
+    .call-controls{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:15px}
+    .call-status{position:absolute;top:20px;left:0;right:0;text-align:center;color:white;font-size:18px}
+    .incoming-call{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);padding:25px;border-radius:15px;z-index:300;text-align:center;display:none;box-shadow:0 0 20px rgba(0,0,0,0.5)}
   </style>
 </head>
 <body>
 
-  <h1 style="text-align:center;margin-bottom:20px">🤖 تواصل — الذكاء الاصطناعي</h1>
-
-  <!-- إدخال المفتاح -->
-  <div id="keySection" class="box">
-    <h3>🔑 أدخل مفتاحك</h3>
-    <p style="color:#888;font-size:14px;margin:8px 0">المفتاح ما يطلع لحد غيرك ✅</p>
-    <input type="password" id="apiKeyInput" placeholder="الصق مفتاح OpenRouter هنا...">
-    <button onclick="saveKey()">✅ حفظ وبدء</button>
+<div class="container">
+  <div id="loginScreen" class="login">
+    <h1>تواصل 🤝</h1>
+    <input type="text" id="nameInput" placeholder="اكتب اسمك...">
+    <button class="btn-main" onclick="enterApp()">ابدأ الاستخدام</button>
+    <p style="margin-top:15px;font-size:13px;opacity:0.6">💡 للتثبيت: اضغط النقاط في الكروم → تثبيت التطبيق</p>
   </div>
 
-  <!-- المحادثة -->
-  <div id="chatSection" class="hidden">
-    <div class="box">
-      <div class="status">✅ جاهز — المفتاح محفوظ في تليفونك بس</div>
-      <button style="background:#666; padding:8px; font-size:14px; width:auto" onclick="changeKey()">🔑 تغيير المفتاح</button>
+  <div id="homeScreen" class="home">
+    <div class="top-bar">
+      <span class="title">Tawasol 🤝</span>
+      <span class="mode">الإنترنت ✅</span>
     </div>
-    <div class="box">
-      <div id="chatArea" style="max-height:450px;overflow-y:auto;margin:10px 0"></div>
-      <textarea id="userInput" rows="2" placeholder="اكتب سؤالك هنا..."></textarea>
-      <button onclick="sendMessage()">🚀 إرسال</button>
+
+    <h2 class="greeting">أهلاً بك يا <span id="myName"></span> 👋</h2>
+
+    <div class="card" onclick="showUsers()">
+      <h3>💬 رسائل خاصة</h3>
+      <p style="opacity:0.7;font-size:13px">تكلم مع من تريد بخصوصية تامة</p>
+    </div>
+
+    <div class="card">
+      <h3>📢 الرسائل العامة</h3>
+      <div id="publicMsgs" style="max-height:200px;overflow-y:auto;margin:10px 0"></div>
+      <input type="text" id="publicInput" placeholder="رسالة للكل...">
+      <button class="btn-main" style="width:100%" onclick="sendPublic()">إرسال للجميع</button>
+    </div>
+
+    <div class="card">
+      <h3>🤖 المساعد الذكي</h3>
+      <p style="opacity:0.7;font-size:13px">قريباً ✅</p>
+    </div>
+
+    <div id="usersSection" class="hidden">
+      <h3 style="margin:15px 0 8px">👥 الأصدقاء المتصلون</h3>
+      <div id="usersList" class="users-list"></div>
+      <button class="btn-main" style="background:transparent;color:var(--text);border:1px solid #444;margin-top:10px" onclick="hideUsers()">← الرجوع</button>
     </div>
   </div>
+
+  <div id="chatScreen" class="chat hidden">
+    <div class="chat-header">
+      <button class="back-btn" onclick="closeChat()">←</button>
+      <span class="chat-name" id="chatName"></span>
+      <div class="call-buttons">
+        <button class="call-btn" title="مكالمة صوتية" onclick="startCall('audio')">📞</button>
+        <button class="call-btn" title="مكالمة فيديو" onclick="startCall('video')">📹</button>
+      </div>
+    </div>
+
+    <div class="msgs" id="chatMsgs"></div>
+
+    <div class="input-bar">
+      <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
+      <button class="file-btn" title="إرفاق ملف" onclick="document.getElementById('fileInput').click()">📎</button>
+      <input type="text" id="chatInput" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter')sendMsg()">
+      <button class="voice-btn" id="voiceToggle" onclick="toggleVoice()">🎤</button>
+      <button class="send-btn" onclick="sendMsg()">إرسال</button>
+    </div>
+  </div>
+</div>
+
+<div id="callScreen" class="call-screen">
+  <div class="video-container">
+    <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+    <video id="localVideo" class="local-video" autoplay playsinline muted></video>
+    <div class="call-status" id="callStatus">جاري الاتصال...</div>
+  </div>
+  <div class="call-controls">
+    <button class="call-btn" id="muteBtn" onclick="toggleMute()">🎤</button>
+    <button class="call-btn" id="camBtn" onclick="toggleCam()">📷</button>
+    <button class="btn-end" onclick="endCall()">إنهاء 📞</button>
+  </div>
+</div>
+
+<div id="incomingCallBox" class="incoming-call">
+  <h3 id="callerName">اتصال من...</h3>
+  <p id="callType">مكالمة صوتية</p>
+  <div style="margin-top:15px">
+    <button class="btn-accept" onclick="acceptCall()">✅ قبول</button>
+    <button class="btn-end" onclick="rejectCall()">❌ رفض</button>
+  </div>
+</div>
 
 <script>
-let API_KEY = localStorage.getItem('openrouter_key') || '';
+const firebaseConfig = {
+  apiKey: "AIzaSyDkAYTpoTBXCSBHZTHbGfC8Yn2pQogR-4M",
+  authDomain: "communication-171c9.firebaseapp.com",
+  projectId: "communication-171c9",
+  storageBucket: "communication-171c9.firebasestorage.app",
+  messagingSenderId: "777228269234",
+  appId: "1:777228269234:web:bab1f9ffc60fdd0a7d3bab"
+};
 
-// لو المفتاح محفوظ نعرض المحادثة مباشرة
-if(API_KEY){
-  document.getElementById('keySection').classList.add('hidden');
-  document.getElementById('chatSection').classList.remove('hidden');
-}
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-function saveKey(){
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if(!key) return alert('الصق المفتاح أولاً');
-  API_KEY = key;
-  localStorage.setItem('openrouter_key', key);
-  document.getElementById('keySection').classList.add('hidden');
-  document.getElementById('chatSection').classList.remove('hidden');
-}
+let myName = "";
+let chatWith = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let recording = false;
+let selectedFile = null;
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
-function changeKey(){
-  localStorage.removeItem('openrouter_key');
-  API_KEY = '';
-  document.getElementById('chatSection').classList.add('hidden');
-  document.getElementById('keySection').classList.remove('hidden');
-  document.getElementById('apiKeyInput').value = '';
-}
-
-async function sendMessage(){
-  if(!API_KEY) return alert('أدخل المفتاح أولاً');
+async function enterApp(){
+  myName = document.getElementById("nameInput").value.trim();
+  if(!myName) return alert("اكتب اسمك أولاً ✋");
   
-  const input = document.getElementById('userInput');
-  const chat = document.getElementById('chatArea');
-  const text = input.value.trim();
-  if(!text) return;
+  await db.collection("users").doc(myName).set({
+    name: myName, online: true, lastSeen: new Date()
+  }, {merge: true});
 
-  chat.innerHTML += `<div class="msg user">أنت: ${text}</div>`;
-  input.value = '';
-  
-  const loadingId = 'load-'+Date.now();
-  chat.innerHTML += `<div class="msg ai" id="${loadingId}">جاري الرد...</div>`;
-  chat.scrollTop = chat.scrollHeight;
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("homeScreen").classList.remove("hidden");
+  document.getElementById("myName").textContent = myName;
 
-  try{
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
-        messages: [
-          {role: 'system', content: 'أنت مساعد عربي، أجب ببساطة وباللهجة الليبية المبسطة.'},
-          {role: 'user', content: text}
-        ]
-      })
-    });
+  startListeners();
+  listenForIncomingCalls();
+}
 
-    const data = await res.json();
-    document.getElementById(loadingId).remove();
+function showUsers(){ document.getElementById("usersSection").classList.remove("hidden"); }
+function hideUsers(){ document.getElementById("usersSection").classList.add("hidden"); }
 
-    if(data.error) throw new Error(data.error.message || 'خطأ في الاتصال');
-    
-    const reply = data.choices[0].message.content || 'لم يتم الحصول على رد';
-    chat.innerHTML += `<div class="msg ai">الذكاء: ${reply}</div>`;
+function openChat(name){
+  if(name === myName) return alert("ما تقدر تكلم نفسك 😄");
+  chatWith = name; selectedFile = null;
+  document.getElementById("chatName").textContent = name;
+  document.getElementById("usersSection").classList.add("hidden");
+  document.getElementById("homeScreen").classList.add("hidden");
+  document.getElementById("chatScreen").classList.remove("hidden");
+  loadChat();
+}
 
-  } catch(err){
-    document.getElementById(loadingId).remove();
-    chat.innerHTML += `<div class="msg ai error">❌ خطأ: ${err.message}</div>`;
+function closeChat(){
+  chatWith = null; selectedFile = null;
+  document.getElementById("chatScreen").classList.add("hidden");
+  document.getElementById("homeScreen").classList.remove("hidden");
+}
+
+function handleFileSelect(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > MAX_FILE_SIZE){
+    alert(`الملف كبير جداً ❌\nأقصى حجم: 15 ميجا\nحجم ملفك: ${(file.size/1024/1024).toFixed(2)} ميجا`);
+    document.getElementById("fileInput").value = "";
+    return;
   }
-  chat.scrollTop = chat.scrollHeight;
+  selectedFile = file;
+  alert(`تم اختيار الملف ✅\nالاسم: ${file.name}\nاضغط إرسال`);
 }
+
+async function uploadAndSendFile(file){
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substr(2,9)}.${ext}`;
+  const ref = storage.ref(`files/${myName}/${fileName}`);
+  await ref.put(file);
+  const url = await ref.getDownloadURL();
+  return { url, name: file.name, type: file.type, size: file.size };
+}
+
+async function sendMsg(){
+  const inp = document.getElementById("chatInput");
+  const text = inp.value.trim();
+  if(!chatWith) return;
+
+  if(selectedFile){
+    try{
+      const fileData = await uploadAndSendFile(selectedFile);
+      await db.collection("private").add({
+        from: myName, to: chatWith, text, file: fileData, type: "file", time: new Date()
+      });
+      inp.value = ""; selectedFile = null;
+      document.getElementById("fileInput").value = "";
+    }catch(e){
+      alert("خطأ في رفع الملف — تأكد من تفعيل التخزين ❌");
+    }
+    return;
+  }
+  if(!text) return;
+  await db.collection("private").add({
+    from: myName, to: chatWith, text, type: "text", time: new Date()
+  });
+  inp.value = "";
+}
+
+async function deleteMessage(id, isPublic){
+  if(!confirm("تمسح الرسالة عند الجميع؟ 🗑️")) return;
+  isPublic ? await db.collection("public").doc(id).delete() : await db.collection("private").doc(id).delete();
+}
+
+async function toggleVoice(){
+  if(!chatWith) return alert("افتح محادثة أولاً ✋");
+  if(!recording){
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e=>audioChunks.push(e.data);
+    mediaRecorder.onstop = async ()=>{
+      const blob = new Blob(audioChunks, {type:"audio/webm"});
+      const reader = new FileReader();
+      reader.onload = async ()=>{
+        await db.collection("private").add({
+          from: myName, to: chatWith, audio: reader.result, type: "audio", time: new Date()
+        });
+      };
+      reader.readAsDataURL(blob);
+    };
+    mediaRecorder.start(); recording = true;
+    document.getElementById("voiceToggle").textContent = "⏹";
+  }else{
+    mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t=>t.stop());
+    recording = false; document.getElementById("voiceToggle").textContent = "🎤";
+  }
+}
+
+const iceServers = [{urls:"stun:stun.l.google.com:19302"}];
+let peerConnection=null, localStream=null, remoteStream=null, callType=null, isCaller=false, callDocRef=null, unsubscribeCall=null;
+
+async function startCall(type){
+  if(!chatWith) return alert("افتح محادثة أولاً ✋");
+  callType=type; isCaller=true;
+  callDocRef = db.collection("calls").doc();
+  await callDocRef.set({from:myName,to:chatWith,type,status:"calling",createdAt:new Date()});
+
+  peerConnection = new RTCPeerConnection({iceServers});
+  const c = type==='video' ? {audio:true,video:true} : {audio:true,video:false};
+  localStream = await navigator.mediaDevices.getUserMedia(c);
+  localStream.getTracks().forEach(t=>peerConnection.addTrack(t,localStream));
+  document.getElementById("localVideo").srcObject = localStream;
+  document.getElementById("localVideo").style.display = type==='audio'?"none":"block";
+  if(type==='audio') document.getElementById("remoteVideo").style.background = "#000";
+
+  remoteStream = new MediaStream();
+  document.getElementById("remoteVideo").srcObject = remoteStream;
+  peerConnection.ontrack = e=>e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
+  peerConnection.onicecandidate = async e=>{if(!e.candidate)return;await callDocRef.collection("signals").add({type:"candidate",data:JSON.stringify(e.candidate),from:myName})};
+
+  const offer = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offer);
+  await callDocRef.collection("signals").add({type:"offer",data:JSON.stringify(offer),from:myName});
+
+  document.getElementById("callScreen").style.display = "flex";
+  document.getElementById("callStatus").textContent = `جاري الاتصال بـ ${chatWith}...`;
+
+  unsubscribeCall = callDocRef.collection("signals").onSnapshot(snap=>{
+    snap.docChanges().forEach(async ch=>{
+      if(ch.type==="added"){
+        const sig = ch.doc.data();
+        if(sig.from===chatWith){
+          if(sig.type==="answer"){
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(sig.data)));
+            document.getElementById("callStatus").textContent = "متصل ✅";
+          } else if(sig.type==="candidate"){
+            await peerConnection.addIceCandidate(JSON.parse(sig.data));
+          } else if(sig.type==="reject"){ endCall(); alert("تم الرفض ❌"); }
+        }
+      }
+    });
+  });
+  callDocRef.onSnapshot(d=>{if(!d.exists||d.data().status==="ended")endCall();});
+}
+
+function listenForIncomingCalls(){
+  db.collection("calls").where("to","==",myName).where("status","==","calling").onSnapshot(snap=>{
+    snap.docChanges().forEach(async ch=>{
+      if(ch.type==="added"){
+        const call = ch.doc.data();
+        callDocRef = ch.doc.ref; isCaller=false; callType=call.type;
+        document.getElementById("callerName").textContent = `اتصال من ${call.from}`;
+        document.getElementById("callType").textContent = call.type==='video'?"مكالمة فيديو":"مكالمة صوتية";
+        document.getElementById("incomingCallBox").style.display = "block";
+      }
+    });
+  });
+}
+
+async function acceptCall(){
+  document.getElementById("incomingCallBox").style.display = "none";
+  await callDocRef.update({status:"connected"});
+  peerConnection = new RTCPeerConnection({iceServers});
+  const c = callType==='video' ? {audio:true,video:true} : {audio:true,video:false};
+  localStream = await navigator.mediaDevices.getUserMedia(c);
+  localStream.getTracks().forEach(t=>peerConnection.addTrack(t,localStream));
+  document.getElementById("localVideo").srcObject = localStream;
+  document.getElementById("localVideo").style.display = callType==='audio'?"none":"block";
+  if(callType==='audio') document.getElementById("remoteVideo").style.background = "#000";
+
+  remoteStream = new MediaStream();
+  document.getElementById("remoteVideo").srcObject = remoteStream;
+  peerConnection.ontrack = e=>e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
+  peerConnection.onicecandidate = async e=>{if(!e.candidate)return;await callDocRef.collection("signals").add({type:"candidate",data:JSON.stringify(e.candidate),from:myName})};
+
+  unsubscribeCall = callDocRef.collection("signals").onSnapshot(snap=>{
+    snap.docChanges().forEach(async ch=>{
+      if(ch.type==="added"){
+        const sig = ch.doc.data();
+        if(sig.type==="offer"&&!isCaller){
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(sig.data)));
+          const ans = await peerConnection.createAnswer();
+          await peerConnection.setLocalDescription(ans);
+          await callDocRef.collection("signals").add({type:"answer",data:JSON.stringify(ans),from:myName});
+          document.getElementById("callScreen").style.display = "flex";
+          document.getElementById("callStatus").textContent = "متصل ✅";
+        } else if(sig.type==="candidate"){ await peerConnection.addIceCandidate(JSON.parse(sig.data)); }
+      }
+    });
+  });
+  callDocRef.onSnapshot(d=>{if(!d.exists||d.data().status==="ended")endCall();});
+}
+
+async function rejectCall(){
+  document.getElementById("incomingCallBox").style.display = "none";
+  if(callDocRef){await callDocRef.collection("signals").add({type:"reject",from:myName});await callDocRef.update({status:"ended"});}
+}
+
+async function endCall(){
+  if(unsubscribeCall) unsubscribeCall();
+  if(peerConnection) await peerConnection.close();
+  if(localStream) localStream.getTracks().forEach(t=>t.stop());
+  peerConnection=localStream=remoteStream=callType=callDocRef=null; isCaller=false;
+  try{if(callDocRef) await callDocRef.update({status:"ended"});}catch(e){}
+  document.getElementById("callScreen").style.display = "none";
+  document.getElementById("incomingCallBox").style.display = "none";
+  document.getElementById("localVideo").srcObject = document.getElementById("remoteVideo").srcObject = null;
+}
+
+function toggleMute(){if(!localStream)return;const t=!localStream.getAudioTracks()[0].enabled;localStream.getAudioTracks()[0].enabled=t;document.getElementById("muteBtn").textContent=t?"🎤":"🔇"}
+function toggleCam(){if(!localStream||callType==='audio')return;const t=!localStream.getVideoTracks()[0].enabled;localStream.getVideoTracks()[0].enabled=t;document.getElementById("camBtn").textContent=t?"📷":"📷❌"}
+
+function loadChat(){
+  db.collection("private").where("to","in",[myName,chatWith]).onSnapshot(snap=>{
+    const div = document.getElementById("chatMsgs"); div.innerHTML = "";
+    snap.forEach(doc=>{
+      const m = doc.data();
+      if(!((m.from===myName&&m.to===chatWith)||(m.from===chatWith&&m.to===myName))) return;
+      const isMe = m.from===myName;
+      const time = m.time?.toDate ? new Date(m.time.toDate()).toLocaleTimeString("ar-LY",{hour:'2-digit',minute:'2-digit'}) : "";
+      
+      let content = "";
+      if(m.type==="text") content = m.text;
+      else if(m.type==="audio") content = `<audio controls src="${m.audio}" style="width:200px">`;
+      else if(m.type==="file" && m.file){
+        if(m.file.type?.startsWith("image/")){
+          content = `<div class="file-preview"><img src="${m.file.url}" alt="صورة"><br><a href="${m.file.url}" target="_blank" class="download-link">📥 تحميل: ${m.file.name}</a></div>`;
+        } else {
+          content = `<div class="file-preview">📄 ملف: ${m.file.name}<br>(${(m.file.size/1024/1024).toFixed(2)} ميجا)<br><a href="${m.file.url}" target="_blank" class="download-link">📥 تحميل</a></div>`;
+        }
+      }
+      
+      div.innerHTML += `<div class="msg ${isMe?'me':'other'}">
+        ${content}
+        <div class="time">${time} ${isMe?`<button class="btn-delete" onclick="deleteMessage('${doc.id}',false)">🗑️</button>`:""}</div>
+      </div>`;
+    });
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+}
+
+async function sendPublic(){
+  const inp = document.getElementById("publicInput");
+  const text = inp.value.trim();
+  if(!text) return;
+  await db.collection("public").add({from:myName,text,time:new Date()});
+  inp.value = "";
+}
+
+function startListeners(){
+  db.collection("users").onSnapshot(snap=>{
+    const list = document.getElementById("usersList"); list.innerHTML = "";
+    snap.forEach(doc=>{
+      const u = doc.data();
+      const active = (Date.now() - (u.lastSeen?.toDate?.()||0)) < 60000;
+      list.innerHTML += `<div class="user-row" onclick="openChat('${u.name}')"><span>${u.name}</span><span class="dot ${active?'dot-green':'dot-red'}"></span></div>`;
+    });
+  });
+
+  db.collection("public").orderBy("time","asc").onSnapshot(snap=>{
+    const div = document.getElementById("publicMsgs"); div.innerHTML = "";
+    snap.forEach(doc=>{
+      const m = doc.data();
+      const isMe = m.from === myName;
+      div.innerHTML += `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center">
+        <span><strong>${m.from}:</strong> ${m.text}</span>
+        ${isMe?`<button class="btn-delete" onclick="deleteMessage('${doc.id}',true)">🗑️</button>`:""}
+      </div>`;
+    });
+  });
+
+  setInterval(()=>{
+    if(myName) db.collection("users").doc(myName).set({online:true,lastSeen:new Date()},{merge:true});
+  },30000);
+}
+
+window.addEventListener("beforeunload",()=>{if(myName)db.collection("users").doc(myName).set({online:false},{merge:true});});
 </script>
 
 </body>
