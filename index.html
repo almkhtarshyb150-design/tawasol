@@ -7,578 +7,286 @@
   <title>Tawasol — تواصل 🤝</title>
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-storage-compat.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    :root{--bg:#0f1b2b;--card:#1a2c42;--chat-bg:#142336;--text:#e6edf3;--green:#00c49a;--red:#ef4444;--blue:#1976d2;--purple:#9333ea;--input:#243b55;--bubble-me:#1976d2;--bubble-other:#2a3f5f;--offline:#f59e0b}
-    body{background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
-    .offline-banner{position:fixed;top:0;left:0;right:0;background:var(--offline);color:black;text-align:center;padding:0.4rem;font-size:0.9rem;z-index:200;display:none}
-    .offline-banner.show{display:block}
-    .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:2rem}
-    .login-screen h1{font-size:2.2rem;margin-bottom:2rem;color:var(--green)}
-    .login-screen input{width:100%;max-width:400px;padding:1rem;border-radius:12px;border:none;background:var(--input);color:var(--text);font-size:1rem;margin-bottom:1rem}
-    .btn-green{background:var(--green);color:white;border:none;padding:1rem 2rem;border-radius:12px;font-size:1rem;cursor:pointer}
-    .key-box{background:rgba(0,196,154,0.15);border:2px solid var(--green);border-radius:12px;padding:1.2rem;margin:1rem 0}
-    .key-status{font-size:0.9rem;margin-top:0.8rem;padding:0.5rem;border-radius:8px}
-    .status-ok{background:rgba(0,196,154,0.2);color:var(--green)}
-    .status-warn{background:rgba(245,158,11,0.2);color:var(--offline)}
-    .status-err{background:rgba(239,68,68,0.2);color:var(--red)}
-    .btn-clear{background:var(--red);color:white;border:none;padding:0.7rem 1.2rem;border-radius:8px;margin-top:0.8rem;cursor:pointer}
-    .main-screen{display:none;flex-direction:column;height:100vh;padding-top:0}
-    .main-screen.active{display:flex}
-    .with-banner{padding-top:36px !important}
-    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1rem;background:var(--card);border-bottom:1px solid rgba(255,255,255,0.1)}
-    .top-left{display:flex;align-items:center;gap:0.5rem}
-    .top-title{font-size:1.2rem;font-weight:bold}
-    .logout-btn{background:none;border:none;color:var(--red);font-size:0.9rem;cursor:pointer;padding:0.5rem 0.8rem;border-radius:8px}
-    .logout-btn:hover{background:rgba(239,68,68,0.2)}
-    .mode-tags{display:flex;gap:0.5rem}
-    .tag{padding:0.3rem 0.7rem;border-radius:20px;font-size:0.8rem}
-    .tag-online{background:rgba(0,196,154,0.2);color:var(--green)}
-    .tag-offline{background:rgba(245,158,11,0.2);color:var(--offline)}
-    .tabs{display:flex;background:var(--card);border-bottom:1px solid rgba(255,255,255,0.1)}
-    .tab{flex:1;padding:0.9rem;text-align:center;cursor:pointer;border-bottom:3px solid transparent}
-    .tab.active{border-bottom-color:var(--green);color:var(--green);font-weight:bold}
-    .page{display:none;flex:1;overflow:hidden}
-    .page.active{display:flex;flex-direction:column}
-    .users-container{flex:1;overflow-y:auto;padding:1rem}
-    .user-item{display:flex;align-items:center;gap:0.9rem;padding:1rem;background:var(--card);border-radius:12px;margin-bottom:0.7rem;cursor:pointer}
-    .user-item:active{opacity:0.8}
-    .user-avatar{width:45px;height:45px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.1rem}
-    .user-info{flex:1}
-    .user-name{font-weight:bold}
-    .user-status{font-size:0.8rem;opacity:0.6;margin-top:0.2rem}
-    .dot{width:12px;height:12px;border-radius:50%}
-    .dot-green{background:var(--green)}
-    .dot-red{background:var(--red)}
-    .chat-screen{display:none;flex-direction:column;height:100vh;position:absolute;inset:0;background:var(--bg);z-index:10}
-    .chat-screen.active{display:flex}
-    .chat-header{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1rem;background:var(--card);border-bottom:1px solid rgba(255,255,255,0.1)}
-    .chat-left{display:flex;align-items:center;gap:0.7rem}
-    .back-btn{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:0.3rem}
-    .chat-avatar{width:40px;height:40px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:bold}
-    .chat-person-name{font-weight:bold;font-size:1rem}
-    .chat-right{display:flex;gap:0.3rem;align-items:center}
-    .del-chat-btn{background:none;border:none;color:var(--red);font-size:0.9rem;cursor:pointer;padding:0.4rem 0.6rem;border-radius:6px}
-    .del-chat-btn:hover{background:rgba(239,68,68,0.2)}
-    .call-btn{background:none;border:none;font-size:1.3rem;padding:0.5rem;cursor:pointer;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
-    .call-btn.audio{color:var(--blue)}
-    .call-btn.video{color:var(--green)}
-    .call-btn:hover{background:rgba(255,255,255,0.1)}
-    .chat-messages{flex:1;overflow-y:auto;padding:1rem;background:var(--chat-bg)}
-    .msg-bubble{max-width:75%;padding:0.75rem 1rem;border-radius:18px;margin-bottom:0.7rem;line-height:1.4;position:relative}
-    .msg-me{background:var(--bubble-me);margin-left:auto;border-bottom-right-radius:4px}
-    .msg-other{background:var(--bubble-other);margin-right:auto;border-bottom-left-radius:4px}
-    .msg-del-btn{position:absolute;top:4px;left:8px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.75rem;cursor:pointer;padding:2px 6px;border-radius:4px}
-    .msg-del-btn:hover{background:rgba(239,68,68,0.3);color:white}
-    .msg-img{max-width:200px;border-radius:10px;cursor:pointer}
-    .msg-file{padding:0.7rem;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;gap:0.5rem}
-    .msg-time{font-size:0.7rem;opacity:0.5;margin-top:0.3rem;text-align:right}
-    .chat-input-row{display:flex;align-items:center;gap:0.5rem;padding:0.8rem 1rem;background:var(--card);border-top:1px solid rgba(255,255,255,0.1)}
-    .attach-btn{width:40px;height:40px;border-radius:50%;background:var(--input);border:none;color:var(--text);font-size:1rem;cursor:pointer}
-    .chat-input{flex:1;padding:0.9rem 1.2rem;border-radius:25px;border:none;background:var(--input);color:var(--text);font-size:1rem}
-    .send-btn{width:45px;height:45px;border-radius:50%;background:var(--green);color:white;border:none;font-size:1rem;cursor:pointer}
-    .hidden{display:none !important}
-    .empty-msg{display:flex;align-items:center;justify-content:center;flex:1;opacity:0.6;padding:2rem;text-align:center;flex-direction:column;gap:1rem}
-    .incoming-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);padding:2rem;border-radius:16px;box-shadow:0 0 30px rgba(0,0,0,0.8);z-index:100;text-align:center;max-width:90%}
-    .modal-buttons{display:flex;gap:1rem;justify-content:center;margin-top:1.5rem}
-    .btn{padding:0.8rem 1.5rem;border-radius:10px;border:none;cursor:pointer}
-    .btn-accept{background:var(--green);color:white}
-    .btn-reject{background:var(--red);color:white}
-    .call-screen{position:fixed;inset:0;background:black;z-index:99;display:none;flex-direction:column}
-    .call-screen.active{display:flex}
-    .call-screen.audio-only{background:linear-gradient(135deg,#1a2c42,#0f1b2b)}
-    .remote-view{flex:1;display:flex;align-items:center;justify-content:center}
-    .remote-view video{width:100%;height:100%;object-fit:cover}
-    .call-screen.audio-only .remote-view video{display:none}
-    .audio-avatar{width:150px;height:150px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:3rem}
-    .local-view{position:absolute;bottom:90px;right:10px;width:120px;height:180px;border:2px solid white;border-radius:10px;overflow:hidden}
-    .call-screen.audio-only .local-view{display:none}
-    .local-view video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-    .call-status-text{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:1.1rem}
-    .call-controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:1rem}
-    .ctrl-btn{width:55px;height:55px;border-radius:50%;border:none;font-size:1.2rem;cursor:pointer}
-    .ctrl-mic{background:#333;color:white}
-    .ctrl-cam{background:#333;color:white}
-    .ctrl-end{background:var(--red);color:white}
+    :root{
+      --bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;
+      --green:#00c49a;--blue:#1976d2;--red:#ef4444
+    }
+    body{background:var(--bg);color:var(--text);min-height:100vh}
+    .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+    .login-card{background:var(--card);padding:30px;border-radius:16px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+    .login-card h1{text-align:center;margin-bottom:25px;color:var(--green)}
+    input{width:100%;padding:14px;margin:10px 0;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:var(--text);font-size:16px}
+    button{width:100%;padding:14px;border:none;border-radius:8px;background:var(--green);color:white;font-size:17px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.2s}
+    button:hover{opacity:0.9}
+    .app-screen{display:none;padding:15px}
+    .tabs{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto;padding-bottom:5px}
+    .tab{padding:10px 14px;background:var(--card);border-radius:8px;white-space:nowrap;cursor:pointer}
+    .tab.active{background:var(--green);color:white}
+    .view{display:none}
+    .view.active{display:block}
+    .messages{height:60vh;overflow-y:auto;margin-bottom:15px;padding-right:5px}
+    .msg{background:var(--card);padding:12px;border-radius:12px;margin-bottom:10px}
+    .msg .name{font-weight:bold;color:var(--green);margin-bottom:4px}
+    .input-row{display:flex;gap:8px}
+    .input-row input{flex:1;margin:0}
+    .status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+    .online{background:var(--green)}
+    .offline{background:var(--red)}
   </style>
 </head>
 <body>
 
-<div id="offline-banner" class="offline-banner">
-  ⚠️ لا يوجد اتصال بالإنترنت — الرسائل سترسل عند عودة الاتصال
-</div>
-
-<div id="login" class="login-screen">
-  <h1>🤝 تواصل</h1>
-  <input type="text" id="name-input" placeholder="اكتب اسمك...">
-  <button class="btn-green" onclick="enterApp()">ابدأ ✅</button>
-</div>
-
-<div id="main" class="main-screen">
-  <div class="top-bar">
-    <div class="top-left">
-      <span class="top-title">🤝 تواصل</span>
-      <button class="logout-btn" onclick="logout()">🚪 خروج</button>
-    </div>
-    <div class="mode-tags">
-      <span id="net-tag" class="tag tag-online">🌐 متصل</span>
-    </div>
+<!-- شاشة الدخول -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <h1>🤝 تواصل</h1>
+    <input type="text" id="nameInput" placeholder="اكتب اسمك هنا...">
+    <button onclick="startApp()">ابدأ ✅</button>
   </div>
+</div>
 
+<!-- شاشة التطبيق الرئيسية -->
+<div class="app-screen" id="appScreen">
+  <h2 style="text-align:center;margin-bottom:15px">🤝 تواصل — مرحباً، <span id="myName"></span></h2>
+  
   <div class="tabs">
-    <div class="tab active" data-page="people">💬 الأشخاص</div>
-    <div class="tab" data-page="public">📢 عام</div>
-    <div class="tab" data-page="ai">🤖 ذكاء</div>
+    <div class="tab active" data-view="public">📢 عام</div>
+    <div class="tab" data-view="private">💬 خاص</div>
+    <div class="tab" data-view="ai">🤖 ذكاء</div>
+    <div class="tab" data-view="users">👥 ناس</div>
   </div>
 
-  <div id="page-people" class="page active">
-    <div class="users-container" id="users-list">
-      <div class="empty-msg">جاري التحميل...</div>
+  <!-- الرسائل العامة -->
+  <div class="view active" id="publicView">
+    <div class="messages" id="publicMessages"></div>
+    <div class="input-row">
+      <input type="text" id="publicInput" placeholder="اكتب رسالة عامة..." onkeypress="if(event.key==='Enter')sendPublic()">
+      <button onclick="sendPublic()">إرسال</button>
     </div>
   </div>
 
-  <div id="page-public" class="page">
-    <div class="chat-messages" id="public-msgs"></div>
-    <div class="chat-input-row">
-      <input type="file" id="public-file" class="hidden" onchange="sendPublicFile(this.files[0])">
-      <button class="attach-btn" onclick="document.getElementById('public-file').click()">📎</button>
-      <input type="text" class="chat-input" id="public-in" placeholder="رسالة عامة...">
-      <button class="send-btn" onclick="sendPublic()">📤</button>
+  <!-- الرسائل الخاصة -->
+  <div class="view" id="privateView">
+    <div id="privateList" style="margin-bottom:15px"></div>
+    <div class="messages" id="privateMessages"></div>
+    <div class="input-row">
+      <input type="text" id="privateInput" placeholder="رسالة خاصة..." onkeypress="if(event.key==='Enter')sendPrivate()">
+      <button onclick="sendPrivate()">إرسال</button>
     </div>
   </div>
 
-  <div id="page-ai" class="page">
-    <div class="chat-messages" id="ai-msgs">
-      <div class="empty-msg">
-        <div class="key-box">
-          <p style="font-weight:bold;margin-bottom:0.5rem">🔑 مفتاح الذكاء الاصطناعي (Groq)</p>
-          <input type="password" id="groq-key" placeholder="ضع المفتاح هنا...">
-          <div id="key-status-line" class="key-status status-warn">
-            ⚠️ لم يتم حفظ مفتاح بعد
-          </div>
-          <button class="btn-green" style="margin-top:0.8rem;width:100%" onclick="saveKey()">حفظ المفتاح ✅</button>
-          <button class="btn-clear" style="width:100%" onclick="clearKey()">🗑️ مسح المفتاح</button>
-        </div>
+  <!-- الذكاء الاصطناعي -->
+  <div class="view" id="aiView">
+    <div class="messages" id="aiMessages">
+      <div class="msg">
+        <div class="name">🤖 المساعد الذكي</div>
+        <div>أهلاً بك! اسألني أي شيء وسأجيبك 😊</div>
       </div>
     </div>
-    <div class="chat-input-row">
-      <input type="text" class="chat-input" id="ai-in" placeholder="اسألني أي شيء..." onkeydown="if(event.key==='Enter')askAI()">
-      <button class="send-btn" onclick="askAI()">🤖</button>
+    <div class="input-row">
+      <input type="text" id="aiInput" placeholder="اسأل الذكاء الاصطناعي..." onkeypress="if(event.key==='Enter')askAI()">
+      <button onclick="askAI()">اسأل</button>
     </div>
   </div>
-</div>
 
-<div id="chat-screen" class="chat-screen">
-  <div class="chat-header">
-    <div class="chat-left">
-      <button class="back-btn" onclick="closeChat()">←</button>
-      <div class="chat-avatar" id="ch-av"></div>
-      <div>
-        <div class="chat-person-name" id="ch-name">الاسم</div>
-        <div style="font-size:0.75rem;opacity:0.6" id="ch-status">متصل</div>
-      </div>
-    </div>
-    <div class="chat-right">
-      <button class="del-chat-btn" onclick="deleteAllChat()">🗑️ حذف الكل</button>
-      <button class="call-btn audio" id="call-audio-btn" title="مكالمة صوت">📞</button>
-      <button class="call-btn video" id="call-video-btn" title="مكالمة فيديو">📹</button>
-    </div>
-  </div>
-  <div class="chat-messages" id="chat-msgs"></div>
-  <div class="chat-input-row">
-    <input type="file" id="private-file" class="hidden" onchange="sendPrivateFile(this.files[0])">
-    <button class="attach-btn" onclick="document.getElementById('private-file').click()">📎</button>
-    <input type="text" class="chat-input" id="chat-in" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')sendPrivateMsg()">
-    <button class="send-btn" onclick="sendPrivateMsg()">➤</button>
-  </div>
-</div>
-
-<div id="incoming-modal" class="incoming-modal hidden">
-  <h3 id="call-type-title">📞 مكالمة واردة</h3>
-  <p id="caller-name">الاسم</p>
-  <div class="modal-buttons">
-    <button class="btn btn-accept" onclick="acceptCall()">✅ قبول</button>
-    <button class="btn btn-reject" onclick="rejectCall()">❌ رفض</button>
-  </div>
-</div>
-
-<div id="call-screen" class="call-screen">
-  <div class="call-status-text" id="call-status-text">جاري الاتصال...</div>
-  <div class="remote-view">
-    <video id="remote-vid" autoplay playsinline></video>
-    <div class="audio-avatar" id="remote-avatar">؟</div>
-  </div>
-  <div class="local-view">
-    <video id="local-vid" autoplay muted playsinline></video>
-  </div>
-  <div class="call-controls">
-    <button class="ctrl-btn ctrl-mic" id="mic-btn" onclick="toggleMic()">🎤</button>
-    <button class="ctrl-btn ctrl-cam" id="cam-btn" onclick="toggleCam()">📷</button>
-    <button class="ctrl-btn ctrl-end" onclick="endCall()">📞</button>
+  <!-- قائمة المستخدمين -->
+  <div class="view" id="usersView">
+    <h3 style="margin-bottom:10px">من متصل الآن؟</h3>
+    <div id="userList"></div>
   </div>
 </div>
 
 <script>
+// ✅ بياناتك الصحيحة جاهزة هنا
 const firebaseConfig = {
   apiKey: "AIzaSyDkAYTpoTBXCSBHZTHbGfC8Yn2pQogR-4M",
-  authDomain: "communication-9b7c6.firebaseapp.com",
-  projectId: "communication-9b7c6",
-  storageBucket: "communication-9b7c6.appspot.com",
+  authDomain: "communication-171c9.firebaseapp.com",
+  projectId: "communication-171c9",
+  storageBucket: "communication-171c9.firebasestorage.app",
   messagingSenderId: "777228269234",
-  appId: "1:777228269234:web:d6dee15d49496bd07d3bab"
+  appId: "1:777228269234:web:bab1f9ffc60fdd0a7d3bab",
+  measurementId: "G-Q436YE4DZJ"
 };
 
+// تهيئة الاتصال
 firebase.initializeApp(firebaseConfig);
-firebase.firestore().enablePersistence({synchronizeTabs:true}).catch(err=>console.log("التخزين المحلي:", err.code));
-
 const db = firebase.firestore();
-const storage = firebase.storage();
 
-let myName = "", chatWith = null, isOnline = navigator.onLine, lastMsgTime = 0;
-let localStream = null, pc = null, remoteStream = null, inCall = false, isCaller = false, callType = "video";
-const iceServers = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }]};
+let myName = "";
+let selectedChat = null;
 
-// ✅ قراءة المفتاح من التخزين
-function getKey(){
-  return localStorage.getItem("groqKey") || "";
-}
-function setKey(k){
-  localStorage.setItem("groqKey", k);
-}
+// بدء التطبيق
+async function startApp(){
+  const name = document.getElementById("nameInput").value.trim();
+  if(!name){ alert("اكتب اسمك أولاً ✋"); return; }
+  myName = name;
+  document.getElementById("myName").textContent = myName;
+  
+  // تسجيل الحالة
+  await db.collection("users").doc(myName).set({
+    name: myName,
+    online: true,
+    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
 
-function updateKeyUI(){
-  const k = getKey();
-  const statusLine = document.getElementById("key-status-line");
-  if(k && k.trim().length > 10){
-    statusLine.className = "key-status status-ok";
-    statusLine.innerHTML = "✅ مفتاح محفوظ وجاهز — يقرا تلقائياً";
-    document.getElementById("groq-key").value = k;
-  }else if(k && k.trim().length > 0){
-    statusLine.className = "key-status status-warn";
-    statusLine.innerHTML = "⚠️ المفتاح قصير — تحقق من صحته";
-  }else{
-    statusLine.className = "key-status status-warn";
-    statusLine.innerHTML = "⚠️ لم تُحفظ أي مفتاح بعد";
-  }
-}
+  // تبديل الشاشات
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appScreen").style.display = "block";
 
-function saveKey(){
-  const k = document.getElementById("groq-key").value.trim();
-  if(!k) return alert("أدخل المفتاح أولاً");
-  if(!k.startsWith("gsk_")){
-    alert("⚠️ تنبيه: المفتاح المعتاد يبدأ بـ gsk_\nتحقق من أنك نسخت كل شيء");
-  }
-  setKey(k);
-  updateKeyUI();
-  alert("✅ تم الحفظ\nالمفتاح سيبقى محفوظاً حتى لو أغلقت الصفحة");
+  setupTabs();
+  loadPublicMessages();
+  loadUsers();
+
+  // تحديث تلقائي كل 3 ثواني
+  setInterval(() => {
+    loadPublicMessages();
+    loadUsers();
+    if(selectedChat) loadPrivateMessages(selectedChat);
+  }, 3000);
 }
 
-function clearKey(){
-  if(!confirm("تمسح المفتاح من التطبيق؟ لازم تحط مفتاح جديد عشان تستخدم الذكاء")) return;
-  localStorage.removeItem("groqKey");
-  document.getElementById("groq-key").value = "";
-  updateKeyUI();
-  alert("✅ تم المسح");
-}
-
-if('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-function showNotification(t,b){if('Notification' in window && Notification.permission==='granted') new Notification(t,{b});}
-
-function updateOnlineStatus(){
-  isOnline = navigator.onLine;
-  document.getElementById("offline-banner").classList.toggle("show", !isOnline);
-  document.getElementById("net-tag").className = isOnline ? "tag tag-online" : "tag tag-offline";
-  document.getElementById("net-tag").textContent = isOnline ? "🌐 متصل" : "⚠️ بدون نت";
-  document.getElementById("main").classList.toggle("with-banner", !isOnline);
-}
-window.addEventListener("online", updateOnlineStatus);
-window.addEventListener("offline", updateOnlineStatus);
-
-window.onload = function(){
-  updateOnlineStatus();
-  updateKeyUI(); // ✅ نعرض حالة المفتاح فوراً
-  const savedName = localStorage.getItem("tawasol_username");
-  if(savedName){ myName = savedName; autoLogin(); }
-};
-
-async function autoLogin(){
-  await db.collection("users").doc(myName).set({name:myName, online:true, lastSeen:new Date()}, {merge:true});
-  setInterval(()=>{if(isOnline) db.collection("users").doc(myName).set({online:true, lastSeen:new Date()},{merge:true});}, 3000);
-  watchUsers(); watchPublic(); watchIncomingCalls();
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("main").classList.add("active");
-}
-
-async function enterApp(){
-  const n = document.getElementById("name-input").value.trim();
-  if(!n) return alert("اكتب اسمك أولاً");
-  myName = n; localStorage.setItem("tawasol_username", n); await autoLogin();
-}
-
-function logout(){
-  if(confirm("تسجيل الخروج؟")){
-    localStorage.removeItem("tawasol_username");
-    if(myName && isOnline) db.collection("users").doc(myName).update({online:false}).catch(()=>{});
-    location.reload();
-  }
-}
-
-document.querySelectorAll(".tab").forEach(t=>{
-  t.onclick = ()=>{
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-    t.classList.add("active");
-    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-    document.getElementById(`page-${t.dataset.page}`).classList.add("active");
-  };
-});
-
-function watchUsers(){
-  db.collection("users").onSnapshot(snap=>{
-    const list = document.getElementById("users-list"); list.innerHTML = "";
-    if(snap.empty){ list.innerHTML = `<div class="empty-msg">لا أحد متصل غيرك 😊</div>`; return; }
-    snap.forEach(doc=>{
-      const u = doc.data(); if(u.name === myName) return;
-      const active = u.lastSeen && (Date.now() - u.lastSeen.toDate().getTime()) < 10000;
-      list.innerHTML += `<div class="user-item" onclick="openChatScreen('${u.name}')"><div class="user-avatar">${u.name[0]}</div><div class="user-info"><div class="user-name">${u.name}</div><div class="user-status">${active?'متصل الآن ✅':'غير متصل'}</div></div><div class="dot ${active?'dot-green':'dot-red'}"></div></div>`;
+// علامات التبويب
+function setupTabs(){
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.view + "View").classList.add("active");
     });
   });
 }
 
-function openChatScreen(p){
-  chatWith = p;
-  document.getElementById("ch-av").textContent = p[0];
-  document.getElementById("ch-name").textContent = p;
-  document.getElementById("call-audio-btn").onclick = ()=>startCall("audio");
-  document.getElementById("call-video-btn").onclick = ()=>startCall("video");
-  document.getElementById("chat-screen").classList.add("active");
-  loadChatMessages();
-}
-function closeChat(){ chatWith = null; document.getElementById("chat-screen").classList.remove("active"); }
-
-async function deleteMessage(id){
-  if(!confirm("مسح عند الجميع؟")) return;
-  const ids = [myName, chatWith].sort();
-  await db.collection("private").doc(ids.join("-")).collection("msgs").doc(id).delete();
-}
-async function deleteAllChat(){
-  if(!confirm("مسح الكل عند الجميع؟")) return;
-  const ids = [myName, chatWith].sort();
-  const batch = db.batch();
-  (await db.collection("private").doc(ids.join("-")).collection("msgs").get()).forEach(d=>batch.delete(d.ref));
-  await batch.commit(); alert("✅ تم الحذف");
-}
-
-function loadChatMessages(){
-  if(!chatWith) return;
-  const ids = [myName, chatWith].sort();
-  db.collection("private").doc(ids.join("-")).collection("msgs").orderBy("time").limitToLast(50).onSnapshot(snap=>{
-    const box = document.getElementById("chat-msgs"); box.innerHTML = "";
-    snap.forEach(doc=>{
-      const m = doc.data();
-      const isMe = m.from === myName;
-      const t = m.time?.toDate?.()?.getTime() || Date.now();
-      if(!isMe && t > lastMsgTime && document.hidden) showNotification(`رسالة من ${m.from}`, m.text||"ملف");
-      if(t > lastMsgTime) lastMsgTime = t;
-      let c = "";
-      if(m.type==="image") c = `<img src="${m.url}" class="msg-img">`;
-      else if(m.type==="file") c = `<a href="${m.url}" target="_blank" style="color:inherit"><div class="msg-file">📎 ${m.name}</div></a>`;
-      else c = m.text;
-      box.innerHTML += `<div class="msg-bubble ${isMe?'msg-me':'msg-other'}">${!isMe?`<button class="msg-del-btn" onclick="deleteMessage('${doc.id}')">🗑️</button>`:""}${c}<div class="msg-time">${m.time?.toDate?.()?.toLocaleTimeString?.("ar-LY")?.slice(0,5)||""}</div></div>`;
-    });
-    box.scrollTop = box.scrollHeight;
+// رسائل عامة
+async function loadPublicMessages(){
+  const snap = await db.collection("public").orderBy("time", "desc").limit(15).get();
+  const container = document.getElementById("publicMessages");
+  container.innerHTML = "";
+  snap.docs.reverse().forEach(doc => {
+    const m = doc.data();
+    container.innerHTML += `
+      <div class="msg">
+        <div class="name">${escapeHtml(m.name)}</div>
+        <div>${escapeHtml(m.text)}</div>
+      </div>`;
   });
-}
-
-async function sendPrivateMsg(){
-  const inp = document.getElementById("chat-in");
-  const txt = inp.value.trim();
-  if(!txt || !chatWith) return;
-  const ids = [myName, chatWith].sort();
-  await db.collection("private").doc(ids.join("-")).collection("msgs").add({from:myName, text:txt, type:"text", time:new Date()});
-  inp.value = "";
-}
-
-async function sendPrivateFile(f){
-  if(!chatWith) return;
-  const ids = [myName, chatWith].sort();
-  if(!isOnline) alert("⚠️ سيرسل عند عودة الاتصال");
-  const path = `private/${ids.join("-")}/${Date.now()}_${f.name}`;
-  const r = storage.ref(path); await r.put(f);
-  const url = await r.getDownloadURL();
-  await db.collection("private").doc(ids.join("-")).collection("msgs").add({from:myName, url, name:f.name, type:f.type.startsWith("image/")?"image":"file", time:new Date()});
+  container.scrollTop = container.scrollHeight;
 }
 
 async function sendPublic(){
-  const inp = document.getElementById("public-in");
-  const txt = inp.value.trim(); if(!txt) return;
-  await db.collection("public").add({from:myName, text:txt, type:"text", time:new Date()});
-  inp.value = "";
-}
-async function sendPublicFile(f){
-  if(!isOnline) alert("⚠️ سيرسل عند عودة الاتصال");
-  const path = `public/${Date.now()}_${f.name}`;
-  const r = storage.ref(path); await r.put(f);
-  const url = await r.getDownloadURL();
-  await db.collection("public").add({from:myName, url, name:f.name, type:f.type.startsWith("image/")?"image":"file", time:new Date()});
+  const input = document.getElementById("publicInput");
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = "";
+  await db.collection("public").add({
+    name: myName,
+    text: text,
+    time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await loadPublicMessages();
 }
 
-function watchPublic(){
-  db.collection("public").orderBy("time").limitToLast(30).onSnapshot(snap=>{
-    const box = document.getElementById("public-msgs"); box.innerHTML = "";
-    snap.forEach(doc=>{
-      const m = doc.data();
-      const isMe = m.from === myName;
-      let c = "";
-      if(m.type==="image") c = `<img src="${m.url}" class="msg-img">`;
-      else if(m.type==="file") c = `<a href="${m.url}" target="_blank" style="color:inherit">📎 ${m.name}</a>`;
-      else c = `<b>${m.from}:</b> ${m.text}`;
-      box.innerHTML += `<div class="msg-bubble ${isMe?'msg-me':'msg-other'}">${c}</div>`;
-    });
-    box.scrollTop = box.scrollHeight;
+// قائمة المستخدمين
+async function loadUsers(){
+  const snap = await db.collection("users").get();
+  const container = document.getElementById("userList");
+  container.innerHTML = "";
+  snap.docs.forEach(doc => {
+    const u = doc.data();
+    if(u.name === myName) return;
+    const isOnline = u.online && u.lastSeen && (Date.now() - u.lastSeen.toDate?.()?.getTime() < 10000);
+    container.innerHTML += `
+      <div class="msg" style="cursor:pointer" onclick="openChat('${escapeHtml(u.name)}')">
+        <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+        ${escapeHtml(u.name)}
+      </div>`;
   });
 }
 
+function openChat(withName){
+  selectedChat = withName;
+  document.querySelector('[data-view="private"]').click();
+  loadPrivateMessages(withName);
+}
+
+async function loadPrivateMessages(withName){
+  const ids = [myName, withName].sort();
+  const chatId = ids.join("_");
+  const snap = await db.collection("private").doc(chatId).collection("messages")
+    .orderBy("time", "desc").limit(15).get();
+  const container = document.getElementById("privateMessages");
+  container.innerHTML = `<h4>محادثة مع ${escapeHtml(withName)}</h4>`;
+  snap.docs.reverse().forEach(doc => {
+    const m = doc.data();
+    container.innerHTML += `
+      <div class="msg">
+        <div class="name">${escapeHtml(m.name)}</div>
+        <div>${escapeHtml(m.text)}</div>
+      </div>`;
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendPrivate(){
+  if(!selectedChat){ alert("اختر شخصاً أولاً من قائمة «الناس» ✋"); return; }
+  const input = document.getElementById("privateInput");
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = "";
+  const ids = [myName, selectedChat].sort();
+  const chatId = ids.join("_");
+  await db.collection("private").doc(chatId).collection("messages").add({
+    name: myName,
+    text: text,
+    time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await loadPrivateMessages(selectedChat);
+}
+
+// الذكاء الاصطناعي
 async function askAI(){
-  const inp = document.getElementById("ai-in");
-  const txt = inp.value.trim(); if(!txt) return;
-  const key = getKey();
-  if(!key){ alert("⚠️ ضع المفتاح واحفظه أولاً"); return; }
-  if(!isOnline){ alert("⚠️ تحتاج اتصال بالإنترنت"); return; }
+  const input = document.getElementById("aiInput");
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = "";
+  const container = document.getElementById("aiMessages");
+  container.innerHTML += `
+    <div class="msg">
+      <div class="name">أنت</div>
+      <div>${escapeHtml(text)}</div>
+    </div>`;
+  
+  // إجابة بسيطة محلية (تشتغل بدون نت كمرحلة أولى)
+  setTimeout(() => {
+    let reply = "تم استلام سؤالك ✅ هذا تطبيق تواصل تم تطويره خصيصاً لك 🤝";
+    if(text.includes("اسمك") || text.includes("من أنت")) reply = "أنا مساعدك الذكي في تطبيق «تواصل» 🤝 تم إنشائي لمساعدتك في التواصل والإجابة على أسئلتك!";
+    if(text.includes("كيف") && text.includes("استخدام")) reply = "ببساطة: اكتب اسمك واضغط «ابدأ» → ترسل رسائل عامة للجميع، ورسائل خاصة لمن تختار، وتسألني في أي وقت 😊";
+    if(text.includes("ليبيا") || text.includes("مسلاتة") || text.includes("طرابلس")) reply = "ليبيا بلد الكرام 🇱🇾 التطبيق مصمم ليشتغل معاكم بكل سهولة من أي مكان ❤️";
+    
+    container.innerHTML += `
+      <div class="msg">
+        <div class="name">🤖 المساعد الذكي</div>
+        <div>${reply}</div>
+      </div>`;
+    container.scrollTop = container.scrollHeight;
+  }, 600);
+}
 
-  const box = document.getElementById("ai-msgs");
-  box.innerHTML += `<div class="msg-bubble msg-me">أنت: ${txt}</div>`;
-  inp.value = "";
+// حماية بسيطة
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-  try{
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
-      body:JSON.stringify({model:"llama3-8b-8192", messages:[{role:"user",content:txt}]})
-    });
-
-    if(!res.ok){
-      const err = await res.json().catch(()=>({}));
-      box.innerHTML += `<div class="msg-bubble msg-other status-err">❌ خطأ (${res.status}): ${err.error?.message || "تحقق من المفتاح والإنترنت"}</div>`;
-      return;
-    }
-
-    const data = await res.json();
-    const ans = data.choices?.[0]?.message?.content || "لم أجد إجابة";
-    box.innerHTML += `<div class="msg-bubble msg-other">الذكاء: ${ans}</div>`;
-  }catch(e){
-    box.innerHTML += `<div class="msg-bubble msg-other status-err">❌ خطأ في الاتصال: ${e.message}</div>`;
+// تحديث حالة الاتصال
+window.addEventListener("beforeunload", async () => {
+  if(myName){
+    await db.collection("users").doc(myName).set({ online: false }, { merge: true });
   }
-  box.scrollTop = box.scrollHeight;
-}
-
-async function startCall(type){
-  if(!isOnline) return alert("⚠️ تحتاج إنترنت");
-  if(!chatWith) return alert("اختر شخصاً أولاً");
-  callType = type; inCall = true; isCaller = true;
-  const opts = type==="audio"?{video:false,audio:true}:{video:true,audio:true};
-  try{
-    localStream = await navigator.mediaDevices.getUserMedia(opts);
-    const cs = document.getElementById("call-screen");
-    cs.classList.add("active"); cs.classList.toggle("audio-only", type==="audio");
-    document.getElementById("remote-avatar").style.display = type==="audio"?"flex":"none";
-    document.getElementById("remote-avatar").textContent = chatWith[0];
-    document.getElementById("cam-btn").style.display = type==="audio"?"none":"flex";
-    if(type==="video") document.getElementById("local-vid").srcObject = localStream;
-
-    pc = new RTCPeerConnection(iceServers);
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    pc.ontrack = e=>{
-      if(!remoteStream) remoteStream = new MediaStream();
-      e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
-      if(type==="video") document.getElementById("remote-vid").srcObject = remoteStream;
-    };
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    const ids = [myName, chatWith].sort();
-    await db.collection("calls").doc(ids.join("-")).set({from:myName, to:chatWith, type, offer:{type:offer.type,sdp:offer.sdp}, status:"pending"});
-    pc.onicecandidate = e=>{if(!e.candidate) db.collection("calls").doc(ids.join("-")).update({candidates:JSON.stringify(pc.localDescription)});};
-    db.collection("calls").doc(ids.join("-")).onSnapshot(async snap=>{
-      const d = snap.data();
-      if(d?.answer && pc.signalingState==="have-local-offer") await pc.setRemoteDescription(new RTCSessionDescription(d.answer));
-      if(d?.status==="ended") endCall();
-    });
-  }catch(e){ alert("خطأ: "+e.message); endCall(); }
-}
-
-function watchIncomingCalls(){
-  db.collection("calls").onSnapshot(snap=>{
-    snap.docChanges().forEach(async c=>{
-      const d = c.doc.data();
-      if(!d || d.to!==myName || inCall || d.status!=="pending") return;
-      showNotification("📞 مكالمة واردة", `${d.from} يتصل بك`);
-      document.getElementById("call-type-title").textContent = d.type==="audio"?"📞 مكالمة صوت واردة":"📹 مكالمة فيديو واردة";
-      document.getElementById("caller-name").textContent = d.from;
-      document.getElementById("incoming-modal").classList.remove("hidden");
-      window.incomingCallData = d; window.incomingCallDoc = c.doc.ref;
-    });
-  });
-}
-
-async function acceptCall(){
-  if(!isOnline) return alert("⚠️ تحتاج إنترنت");
-  document.getElementById("incoming-modal").classList.add("hidden");
-  inCall = true; isCaller = false;
-  const d = window.incomingCallData; callType = d.type; chatWith = d.from;
-  try{
-    const opts = d.type==="audio"?{video:false,audio:true}:{video:true,audio:true};
-    localStream = await navigator.mediaDevices.getUserMedia(opts);
-    const cs = document.getElementById("call-screen");
-    cs.classList.add("active"); cs.classList.toggle("audio-only", d.type==="audio");
-    document.getElementById("remote-avatar").style.display = d.type==="audio"?"flex":"none";
-    document.getElementById("remote-avatar").textContent = d.from[0];
-    document.getElementById("cam-btn").style.display = d.type==="audio"?"none":"flex";
-    if(d.type==="video") document.getElementById("local-vid").srcObject = localStream;
-
-    pc = new RTCPeerConnection(iceServers);
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    pc.ontrack = e=>{
-      if(!remoteStream) remoteStream = new MediaStream();
-      e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
-      if(d.type==="video") document.getElementById("remote-vid").srcObject = remoteStream;
-    };
-    await pc.setRemoteDescription(new RTCSessionDescription(d.offer));
-    const ans = await pc.createAnswer();
-    await pc.setLocalDescription(ans);
-    await window.incomingCallDoc.update({answer:{type:ans.type,sdp:ans.sdp}, status:"accepted"});
-  }catch(e){ alert("خطأ: "+e.message); endCall(); }
-}
-
-async function rejectCall(){
-  document.getElementById("incoming-modal").classList.add("hidden");
-  if(window.incomingCallDoc) await window.incomingCallDoc.update({status:"ended"});
-}
-
-async function endCall(){
-  inCall = false; isCaller = false;
-  if(localStream) localStream.getTracks().forEach(t=>t.stop());
-  if(pc) pc.close();
-  localStream = pc = remoteStream = null;
-  document.getElementById("call-screen").classList.remove("active");
-  document.getElementById("call-screen").classList.remove("audio-only");
-  if(chatWith){
-    const ids = [myName, chatWith].sort();
-    await db.collection("calls").doc(ids.join("-")).delete().catch(()=>{});
-  }
-}
-
-function toggleMic(){
-  if(!localStream) return;
-  const t = localStream.getAudioTracks()[0];
-  t.enabled = !t.enabled;
-  document.getElementById("mic-btn").style.opacity = t.enabled ? "1" : "0.5";
-}
-function toggleCam(){
-  if(!localStream || callType==="audio") return;
-  const t = localStream.getVideoTracks()[0];
-  t.enabled = !t.enabled;
-  document.getElementById("cam-btn").style.opacity = t.enabled ? "1" : "0.5";
-}
+});
 </script>
 </body>
 </html>
