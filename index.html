@@ -3,184 +3,393 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f1b2b">
   <title>تواصل 🤝</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    body{background:#0f1b2b;color:#fff;direction:rtl}
-    .app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
-    .screen{display:none;flex:1;padding:1rem}
-    .screen.active{display:flex;flex-direction:column}
-    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:1rem;background:#172538;border-bottom:1px solid #2a3f5c}
-    .chat-header{display:flex;align-items:center;gap:.5rem}
-    .status-dot{width:10px;height:10px;border-radius:50%;background:#666}
-    .status-dot.online{background:#22c55e}
-    .messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.8rem}
-    .msg{max-width:75%;padding:.75rem 1rem;border-radius:18px;line-height:1.4}
-    .msg.me{align-self:flex-end;background:#0084ff;border-bottom-right-radius:4px}
-    .msg.other{align-self:flex-start;background:#2a3f5c;border-bottom-left-radius:4px}
-    .input-area{display:flex;gap:.5rem;padding:1rem;background:#172538;border-top:1px solid #2a3f5c}
-    input,button{border:none;border-radius:24px;padding:.75rem 1rem;font-size:1rem}
-    input{flex:1;background:#2a3f5c;color:#fff}
-    button{background:#0084ff;color:#fff;cursor:pointer}
-    .user-list{display:flex;flex-direction:column;gap:.5rem}
-    .user-item{display:flex;align-items:center;gap:.75rem;padding:1rem;background:#172538;border-radius:12px;cursor:pointer}
-    .user-item:hover{background:#2a3f5c}
-    .login-screen{justify-content:center;align-items:center;gap:1.5rem;text-align:center}
-    .login-screen h1{font-size:2rem}
-    .login-screen input{width:100%;max-width:320px;text-align:center}
-    .action-buttons{display:flex;gap:.5rem;margin-right:auto}
-    .icon-btn{width:36px;height:36px;border-radius:50%;background:#2a3f5c;display:flex;align-items:center;justify-content:center;padding:0}
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
+    body { background:#0f1b2b; color:#fff; direction:rtl; }
+    .hidden { display:none !important; }
+    
+    /* شاشة الدخول */
+    #loginScreen { height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+    #userNameInput { padding:14px 20px; font-size:18px; border-radius:12px; border:none; width:280px; background:#1e2f44; color:#fff; }
+    button { padding:12px 24px; font-size:16px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; }
+    .btn-primary { background:#2563eb; color:#fff; }
+    .btn-primary:hover { background:#1d4ed8; }
+    
+    /* الشاشة الرئيسية */
+    #mainScreen { padding:16px; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #2a3b4f; margin-bottom:16px; }
+    .user-item { display:flex; align-items:center; gap:10px; padding:12px; background:#1a2c42; border-radius:10px; margin-bottom:8px; cursor:pointer; }
+    .status-dot { width:12px; height:12px; border-radius:50%; }
+    .online { background:#22c55e; }
+    .offline { background:#ef4444; }
+    
+    /* المحادثة */
+    .chat-header { display:flex; align-items:center; gap:12px; padding:12px; background:#1e2f44; border-radius:10px 10px 0 0; }
+    .call-buttons { margin-left:auto; display:flex; gap:8px; }
+    .call-btn { padding:8px 12px; font-size:14px; }
+    .video { background:#3b82f6; color:#fff; }
+    .audio { background:#10b981; color:#fff; }
+    .messages-container { height:400px; overflow-y:auto; background:#0f1b2b; padding:12px; border:1px solid #2a3b4f; border-top:none; }
+    .message { margin-bottom:10px; padding:10px 14px; border-radius:16px; max-width:75%; }
+    .my-msg { background:#2563eb; margin-left:0; margin-right:auto; }
+    .other-msg { background:#1e2f44; margin-right:0; margin-left:auto; }
+    .input-area { display:flex; gap:8px; padding:12px; background:#1e2f44; border-radius:0 0 10px 10px; }
+    #messageInput { flex:1; padding:10px 14px; border-radius:8px; border:none; background:#0f1b2b; color:#fff; }
+    
+    /* مكالمة الفيديو */
+    #videoCallOverlay { position:fixed; inset:0; background:#000; z-index:999; display:flex; flex-direction:column; }
+    .video-container { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px; }
+    video { width:100%; height:100%; object-fit:cover; border-radius:10px; background:#1a1a1a; }
+    .call-controls { display:flex; justify-content:center; gap:20px; padding:20px; }
+    .end-call { background:#ef4444; color:#fff; }
   </style>
 </head>
 <body>
-<div class="app">
 
-  <div id="loginScreen" class="screen login-screen active">
-    <h1>🤝 تواصل</h1>
-    <input type="text" id="nameInput" placeholder="اكتب اسمك...">
-    <button onclick="startApp()">ابدأ ✅</button>
+<!-- شاشة الدخول -->
+<div id="loginScreen">
+  <h1>تواصل 🤝</h1>
+  <input type="text" id="userNameInput" placeholder="اكتب اسمك...">
+  <button class="btn-primary" onclick="login()">ابدأ ✅</button>
+</div>
+
+<!-- الشاشة الرئيسية -->
+<div id="mainScreen" class="hidden">
+  <div class="header">
+    <h2>قائمة الأصدقاء</h2>
+    <span id="myName"></span>
   </div>
+  <div id="usersList"></div>
 
-  <div id="listScreen" class="screen">
-    <div class="top-bar"><h2>المراسلة</h2></div>
-    <div id="userList" class="user-list"></div>
-  </div>
-
-  <div id="chatScreen" class="screen">
-    <div class="top-bar">
-      <button onclick="backToList()" style="background:none;color:#fff;padding:.5rem">← رجوع</button>
-      <div class="chat-header">
-        <span id="chatName"></span>
-        <span id="chatStatus" class="status-dot"></span>
-      </div>
-      <div class="action-buttons">
-        <button class="icon-btn" title="مكالمة صوت">📞</button>
-        <button class="icon-btn" title="مكالمة فيديو">📹</button>
+  <!-- المحادثة -->
+  <div id="chatSection" class="hidden" style="margin-top:20px;">
+    <div class="chat-header">
+      <span id="chatWithName"></span>
+      <div class="call-buttons">
+        <button class="call-btn audio" onclick="startAudioCall()">📞 صوت</button>
+        <button class="call-btn video" onclick="startVideoCall()">📹 فيديو</button>
       </div>
     </div>
-    <div id="messages" class="messages"></div>
+    <div class="messages-container" id="messagesBox"></div>
     <div class="input-area">
-      <input type="text" id="msgInput" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter')sendMsg()">
-      <button onclick="sendMsg()">إرسال</button>
+      <input type="text" id="messageInput" placeholder="اكتب رسالتك...">
+      <button class="btn-primary" onclick="sendMessage()">إرسال</button>
     </div>
   </div>
+</div>
 
+<!-- شاشة المكالمة -->
+<div id="videoCallOverlay" class="hidden">
+  <div class="video-container">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+  </div>
+  <div class="call-controls">
+    <button class="end-call" onclick="endCall()">إنهاء المكالمة ✖</button>
+  </div>
 </div>
 
 <script>
-// ✅ تم وضع المفتاح والرابط بشكل صحيح
-const SUPABASE_URL = "https://unmulvjcgzppxluxrluxrg.supabase.co";
-const SUPABASE_KEY = "sb_publishable_kZAo8wC6pFDCInPUdq-qSw_jUvYll4b";
+// === 🔗 إعدادات قاعدة البيانات ===
+const SUPABASE_URL = "https://communication-171c9.supabase.co";
+const SUPABASE_KEY = "AIzaSyDkAYTpoTBXCSBHZTHbGfC8Yn2pQogR-4M";
 
 const { createClient } = supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let myName = localStorage.getItem("myName") || "";
-let chatWith = null;
+// === 📞 إعدادات الاتصال (تشتغل في ليبيا) ===
+const rtcConfig = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" }
+  ]
+};
 
-async function startApp(){
-  const name = document.getElementById("nameInput").value.trim();
-  if(!name) return alert("اكتب اسمك أولاً ✋");
-  
-  myName = name;
-  localStorage.setItem("myName", myName);
+// === 📝 بيانات المستخدم الحالي ===
+let currentUser = null;
+let activeChatWith = null;
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let isAudioOnly = false;
 
-  await supabase.from("users").upsert({
-    name: myName,
-    online: true,
-    last_seen: new Date().toISOString()
-  });
+// === 💾 حفظ اسم المستخدم ===
+function saveUserName(name) {
+  localStorage.setItem("tawasol_name", name);
+}
+function getSavedUserName() {
+  return localStorage.getItem("tawasol_name") || "";
+}
 
-  showScreen("listScreen");
+// === 🔑 الدخول ===
+async function login() {
+  const name = document.getElementById("userNameInput").value.trim();
+  if (!name) return alert("اكتب اسمك من فضلك");
+
+  saveUserName(name);
+  currentUser = name;
+  document.getElementById("myName").textContent = name;
+
+  // تحديث حالة الاتصال
+  await db.from("users").upsert({ name: currentUser, online: true, last_seen: new Date().toISOString() });
+
+  // إخفاء شاشة الدخول
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("mainScreen").classList.remove("hidden");
+
+  // بدء الاستماع
   loadUsers();
-  setInterval(loadUsers, 5000);
+  listenUsers();
+  listenMessages();
+  listenCalls();
+
+  // تحديث الحالة كل 30 ثانية
+  setInterval(() => {
+    db.from("users").upsert({ name: currentUser, online: true, last_seen: new Date().toISOString() });
+  }, 30000);
+
+  // تحديث القائمة كل ثانية
+  setInterval(loadUsers, 1000);
 }
 
-function showScreen(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
+// === 👥 تحميل قائمة المستخدمين ===
+async function loadUsers() {
+  const { data } = await db.from("users").select("*");
+  if (!data) return;
 
-async function loadUsers(){
-  const {data} = await supabase.from("users").select("*");
-  const list = document.getElementById("userList");
+  const list = document.getElementById("usersList");
   list.innerHTML = "";
-  
-  data.forEach(u=>{
-    if(u.name === myName) return;
-    const isOnline = u.online && (Date.now() - new Date(u.last_seen).getTime()) < 60000;
+
+  data.forEach(u => {
+    if (u.name === currentUser) return;
+    const isOnline = u.online && (Date.now() - new Date(u.last_seen).getTime()) < 40000;
+    
     list.innerHTML += `
       <div class="user-item" onclick="openChat('${u.name}')">
-        <span class="status-dot ${isOnline?'online':''}"></span>
+        <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
         <span>${u.name}</span>
       </div>
     `;
   });
 }
 
-async function openChat(name){
-  chatWith = name;
-  document.getElementById("chatName").textContent = name;
-  showScreen("chatScreen");
+// === 💬 فتح محادثة ===
+function openChat(name) {
+  activeChatWith = name;
+  document.getElementById("chatSection").classList.remove("hidden");
+  document.getElementById("chatWithName").textContent = name;
   loadMessages();
 }
 
-function backToList(){
-  chatWith = null;
-  showScreen("listScreen");
-  loadUsers();
+// === 📤 إرسال رسالة ===
+async function sendMessage() {
+  const text = document.getElementById("messageInput").value.trim();
+  if (!text || !activeChatWith) return;
+
+  await db.from("messages").insert({
+    from: currentUser,
+    to: activeChatWith,
+    text: text,
+    time: new Date().toISOString()
+  });
+
+  document.getElementById("messageInput").value = "";
+  loadMessages();
 }
 
-async function loadMessages(){
-  if(!chatWith) return;
-  const {data} = await supabase
-    .from("messages")
-    .select("*")
-    .or(`and(sender.eq.${myName},receiver.eq.${chatWith}),and(sender.eq.${chatWith},receiver.eq.${myName})`)
-    .order("created_at",{ascending:true});
+// === 📥 تحميل الرسائل ===
+async function loadMessages() {
+  if (!activeChatWith) return;
 
-  const box = document.getElementById("messages");
+  const { data } = await db.from("messages")
+    .or(`and(from.eq.${currentUser},to.eq.${activeChatWith}),and(from.eq.${activeChatWith},to.eq.${currentUser})`)
+    .order("time", { ascending: true });
+
+  const box = document.getElementById("messagesBox");
   box.innerHTML = "";
-  data.forEach(m=>{
-    box.innerHTML += `<div class="msg ${m.sender===myName?'me':'other'}">${m.text}</div>`;
-  });
+
+  if (data) {
+    data.forEach(m => {
+      const isMine = m.from === currentUser;
+      box.innerHTML += `
+        <div class="message ${isMine ? 'my-msg' : 'other-msg'}">
+          ${m.text}
+        </div>
+      `;
+    });
+  }
   box.scrollTop = box.scrollHeight;
 }
 
-async function sendMsg(){
-  const input = document.getElementById("msgInput");
-  const text = input.value.trim();
-  if(!text || !chatWith) return;
-
-  input.value = "";
-  await supabase.from("messages").insert({
-    sender: myName,
-    receiver: chatWith,
-    text: text
-  });
-  loadMessages();
+// === 📞 بدء مكالمة صوت فقط ===
+async function startAudioCall() {
+  if (!activeChatWith) return alert("افتح محادثة أولاً");
+  isAudioOnly = true;
+  await startCall(activeChatWith);
 }
 
-setInterval(()=>{
-  if(chatWith) loadMessages();
-}, 2000);
+// === 📹 بدء مكالمة فيديو ===
+async function startVideoCall() {
+  if (!activeChatWith) return alert("افتح محادثة أولاً");
+  isAudioOnly = false;
+  await startCall(activeChatWith);
+}
 
-setInterval(()=>{
-  if(myName){
-    supabase.from("users").upsert({
-      name: myName,
-      online: true,
-      last_seen: new Date().toISOString()
+// === 🔄 بدء الاتصال العام ===
+async function startCall(targetName) {
+  try {
+    // فتح الكاميرا أو الميكروفون فقط
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: !isAudioOnly  // ✅ صوت فقط = الكاميرا مفتحتش
     });
-  }
-}, 30000);
 
-if(myName){
-  document.getElementById("nameInput").value = myName;
-  startApp();
+    // عرض الفيديو المحلي
+    document.getElementById("localVideo").srcObject = localStream;
+    document.getElementById("videoCallOverlay").classList.remove("hidden");
+
+    // إنشاء اتصال
+    peerConnection = new RTCPeerConnection(rtcConfig);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    // استقبال فيديو الطرف الثاني
+    peerConnection.ontrack = e => {
+      if (!remoteStream) remoteStream = new MediaStream();
+      remoteStream.addTrack(e.track, remoteStream);
+      document.getElementById("remoteVideo").srcObject = remoteStream;
+    };
+
+    // إرسال العرض
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    // حفظ الإشارة في قاعدة البيانات
+    await db.from("call_signals").insert({
+      from: currentUser,
+      to: targetName,
+      type: "offer",
+      data: peerConnection.localDescription,
+      audio_only: isAudioOnly
+    });
+
+  } catch (err) {
+    console.error("خطأ في المكالمة:", err);
+    alert("ما قدرت أفتح الكاميرا/الميكروفون — تأكد من الإذنات");
+  }
 }
+
+// === 📥 استقبال إشارة الاتصال ===
+async function listenCalls() {
+  db.channel('call_signals_changes').on('postgres_changes', {
+    event: 'INSERT', schema: 'public', table: 'call_signals',
+    filter: `to=eq.${currentUser}`
+  }, async (payload) => {
+    const signal = payload.new;
+    
+    if (signal.type === "offer") {
+      if (confirm(`${signal.from} يتصل بك — هل تريد الإجابة؟`)) {
+        isAudioOnly = signal.audio_only || false;
+        await acceptCall(signal);
+      }
+    }
+    else if (signal.type === "answer" && peerConnection) {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.data));
+    }
+    else if (signal.type === "ice" && peerConnection) {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(signal.data));
+    }
+  }).subscribe();
+}
+
+// ✅ قبول الاتصال
+async function acceptCall(signal) {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: !isAudioOnly
+    });
+
+    document.getElementById("localVideo").srcObject = localStream;
+    document.getElementById("videoCallOverlay").classList.remove("hidden");
+
+    peerConnection = new RTCPeerConnection(rtcConfig);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.ontrack = e => {
+      if (!remoteStream) remoteStream = new MediaStream();
+      remoteStream.addTrack(e.track);
+      document.getElementById("remoteVideo").srcObject = remoteStream;
+    };
+
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.data));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    await db.from("call_signals").insert({
+      from: currentUser,
+      to: signal.from,
+      type: "answer",
+      data: peerConnection.localDescription
+    });
+
+    activeChatWith = signal.from;
+    openChat(signal.from);
+
+  } catch (err) {
+    console.error("خطأ في قبول المكالمة:", err);
+  }
+}
+
+// === ❌ إنهاء المكالمة ===
+function endCall() {
+  if (peerConnection) peerConnection.close();
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  
+  peerConnection = null;
+  localStream = null;
+  remoteStream = null;
+
+  document.getElementById("videoCallOverlay").classList.add("hidden");
+  document.getElementById("localVideo").srcObject = null;
+  document.getElementById("remoteVideo").srcObject = null;
+}
+
+// === 🔄 استماع للتحديثات ===
+function listenUsers() {
+  db.channel('users_changes').on('postgres_changes', {
+    event: '*', schema: 'public', table: 'users'
+  }, () => loadUsers()).subscribe();
+}
+
+function listenMessages() {
+  db.channel('messages_changes').on('postgres_changes', {
+    event: 'INSERT', schema: 'public', table: 'messages'
+  }, (payload) => {
+    if (activeChatWith && 
+        ((payload.new.from === currentUser && payload.new.to === activeChatWith) ||
+         (payload.new.from === activeChatWith && payload.new.to === currentUser))) {
+      loadMessages();
+    }
+  }).subscribe();
+}
+
+// === 🚀 تحميل الاسم المحفوظ ===
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = getSavedUserName();
+  if (saved) {
+    document.getElementById("userNameInput").value = saved;
+  }
+});
+
+// عند إغلاق الصفحة — تحديث الحالة
+window.addEventListener('beforeunload', async () => {
+  if (currentUser) {
+    await db.from("users").upsert({ name: currentUser, online: false, last_seen: new Date().toISOString() });
+  }
+});
 </script>
 </body>
 </html>
