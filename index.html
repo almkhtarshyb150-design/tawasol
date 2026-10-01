@@ -145,14 +145,15 @@
 
 <script>
 // ✅ الإعدادات الصحيحة لمشروعك
-const SUPABASE_URL = "https://unmulvjcgzppxluxvlrg.supabase.co";
-const SUPABASE_KEY = "ضع-المفتاح-الكامل-هنا-مكان-هذا-الكلام";
+const SUPABASE_URL = "https://unmulvjcgzppxluxvlrg.supabase.co
+  ";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubXVsdmpjZ3pwcHhsdXh2bHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NTYxNDUsImV4cCI6MjEwNjQzMjE0NX0.YUVHUoAPLYOilVP9pT5qfEbzGuHwQVh2_iUVwn3hPPE";
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const rtcConfig = {
-  iceServers: [
+  iceServers: 
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
     { urls: "stun:stun2.l.google.com:19302" },
