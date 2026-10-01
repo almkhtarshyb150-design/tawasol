@@ -4,289 +4,183 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f1b2b">
-  <title>Tawasol — تواصل 🤝</title>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+  <title>تواصل 🤝</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-    :root{
-      --bg:#0f1b2b;--card:#1a2c42;--text:#e6edf3;
-      --green:#00c49a;--blue:#1976d2;--red:#ef4444
-    }
-    body{background:var(--bg);color:var(--text);min-height:100vh}
-    .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-    .login-card{background:var(--card);padding:30px;border-radius:16px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-    .login-card h1{text-align:center;margin-bottom:25px;color:var(--green)}
-    input{width:100%;padding:14px;margin:10px 0;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:var(--text);font-size:16px}
-    button{width:100%;padding:14px;border:none;border-radius:8px;background:var(--green);color:white;font-size:17px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.2s}
-    button:hover{opacity:0.9}
-    .app-screen{display:none;padding:15px}
-    .tabs{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto;padding-bottom:5px}
-    .tab{padding:10px 14px;background:var(--card);border-radius:8px;white-space:nowrap;cursor:pointer}
-    .tab.active{background:var(--green);color:white}
-    .view{display:none}
-    .view.active{display:block}
-    .messages{height:60vh;overflow-y:auto;margin-bottom:15px;padding-right:5px}
-    .msg{background:var(--card);padding:12px;border-radius:12px;margin-bottom:10px}
-    .msg .name{font-weight:bold;color:var(--green);margin-bottom:4px}
-    .input-row{display:flex;gap:8px}
-    .input-row input{flex:1;margin:0}
-    .status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-    .online{background:var(--green)}
-    .offline{background:var(--red)}
+    body{background:#0f1b2b;color:#fff;direction:rtl}
+    .app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+    .screen{display:none;flex:1;padding:1rem}
+    .screen.active{display:flex;flex-direction:column}
+    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:1rem;background:#172538;border-bottom:1px solid #2a3f5c}
+    .chat-header{display:flex;align-items:center;gap:.5rem}
+    .status-dot{width:10px;height:10px;border-radius:50%;background:#666}
+    .status-dot.online{background:#22c55e}
+    .messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.8rem}
+    .msg{max-width:75%;padding:.75rem 1rem;border-radius:18px;line-height:1.4}
+    .msg.me{align-self:flex-end;background:#0084ff;border-bottom-right-radius:4px}
+    .msg.other{align-self:flex-start;background:#2a3f5c;border-bottom-left-radius:4px}
+    .input-area{display:flex;gap:.5rem;padding:1rem;background:#172538;border-top:1px solid #2a3f5c}
+    input,button{border:none;border-radius:24px;padding:.75rem 1rem;font-size:1rem}
+    input{flex:1;background:#2a3f5c;color:#fff}
+    button{background:#0084ff;color:#fff;cursor:pointer}
+    .user-list{display:flex;flex-direction:column;gap:.5rem}
+    .user-item{display:flex;align-items:center;gap:.75rem;padding:1rem;background:#172538;border-radius:12px;cursor:pointer}
+    .user-item:hover{background:#2a3f5c}
+    .login-screen{justify-content:center;align-items:center;gap:1.5rem;text-align:center}
+    .login-screen h1{font-size:2rem}
+    .login-screen input{width:100%;max-width:320px;text-align:center}
+    .action-buttons{display:flex;gap:.5rem;margin-right:auto}
+    .icon-btn{width:36px;height:36px;border-radius:50%;background:#2a3f5c;display:flex;align-items:center;justify-content:center;padding:0}
   </style>
 </head>
 <body>
+<div class="app">
 
-<!-- شاشة الدخول -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-card">
+  <div id="loginScreen" class="screen login-screen active">
     <h1>🤝 تواصل</h1>
-    <input type="text" id="nameInput" placeholder="اكتب اسمك هنا...">
+    <input type="text" id="nameInput" placeholder="اكتب اسمك...">
     <button onclick="startApp()">ابدأ ✅</button>
   </div>
-</div>
 
-<!-- شاشة التطبيق الرئيسية -->
-<div class="app-screen" id="appScreen">
-  <h2 style="text-align:center;margin-bottom:15px">🤝 تواصل — مرحباً، <span id="myName"></span></h2>
-  
-  <div class="tabs">
-    <div class="tab active" data-view="public">📢 عام</div>
-    <div class="tab" data-view="private">💬 خاص</div>
-    <div class="tab" data-view="ai">🤖 ذكاء</div>
-    <div class="tab" data-view="users">👥 ناس</div>
+  <div id="listScreen" class="screen">
+    <div class="top-bar"><h2>المراسلة</h2></div>
+    <div id="userList" class="user-list"></div>
   </div>
 
-  <!-- الرسائل العامة -->
-  <div class="view active" id="publicView">
-    <div class="messages" id="publicMessages"></div>
-    <div class="input-row">
-      <input type="text" id="publicInput" placeholder="اكتب رسالة عامة..." onkeypress="if(event.key==='Enter')sendPublic()">
-      <button onclick="sendPublic()">إرسال</button>
-    </div>
-  </div>
-
-  <!-- الرسائل الخاصة -->
-  <div class="view" id="privateView">
-    <div id="privateList" style="margin-bottom:15px"></div>
-    <div class="messages" id="privateMessages"></div>
-    <div class="input-row">
-      <input type="text" id="privateInput" placeholder="رسالة خاصة..." onkeypress="if(event.key==='Enter')sendPrivate()">
-      <button onclick="sendPrivate()">إرسال</button>
-    </div>
-  </div>
-
-  <!-- الذكاء الاصطناعي -->
-  <div class="view" id="aiView">
-    <div class="messages" id="aiMessages">
-      <div class="msg">
-        <div class="name">🤖 المساعد الذكي</div>
-        <div>أهلاً بك! اسألني أي شيء وسأجيبك 😊</div>
+  <div id="chatScreen" class="screen">
+    <div class="top-bar">
+      <button onclick="backToList()" style="background:none;color:#fff;padding:.5rem">← رجوع</button>
+      <div class="chat-header">
+        <span id="chatName"></span>
+        <span id="chatStatus" class="status-dot"></span>
+      </div>
+      <div class="action-buttons">
+        <button class="icon-btn" title="مكالمة صوت">📞</button>
+        <button class="icon-btn" title="مكالمة فيديو">📹</button>
       </div>
     </div>
-    <div class="input-row">
-      <input type="text" id="aiInput" placeholder="اسأل الذكاء الاصطناعي..." onkeypress="if(event.key==='Enter')askAI()">
-      <button onclick="askAI()">اسأل</button>
+    <div id="messages" class="messages"></div>
+    <div class="input-area">
+      <input type="text" id="msgInput" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter')sendMsg()">
+      <button onclick="sendMsg()">إرسال</button>
     </div>
   </div>
 
-  <!-- قائمة المستخدمين -->
-  <div class="view" id="usersView">
-    <h3 style="margin-bottom:10px">من متصل الآن؟</h3>
-    <div id="userList"></div>
-  </div>
 </div>
 
 <script>
-// ✅ بياناتك الصحيحة جاهزة هنا
-const firebaseConfig = {
-  apiKey: "AIzaSyDkAYTpoTBXCSBHZTHbGfC8Yn2pQogR-4M",
-  authDomain: "communication-171c9.firebaseapp.com",
-  projectId: "communication-171c9",
-  storageBucket: "communication-171c9.firebasestorage.app",
-  messagingSenderId: "777228269234",
-  appId: "1:777228269234:web:bab1f9ffc60fdd0a7d3bab",
-  measurementId: "G-Q436YE4DZJ"
-};
+// ✅ تم وضع المفتاح والرابط بشكل صحيح
+const SUPABASE_URL = "https://unmulvjcgzppxluxrluxrg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_kZAo8wC6pFDCInPUdq-qSw_jUvYll4b";
 
-// تهيئة الاتصال
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const { createClient } = supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let myName = "";
-let selectedChat = null;
+let myName = localStorage.getItem("myName") || "";
+let chatWith = null;
 
-// بدء التطبيق
 async function startApp(){
   const name = document.getElementById("nameInput").value.trim();
-  if(!name){ alert("اكتب اسمك أولاً ✋"); return; }
-  myName = name;
-  document.getElementById("myName").textContent = myName;
+  if(!name) return alert("اكتب اسمك أولاً ✋");
   
-  // تسجيل الحالة
-  await db.collection("users").doc(myName).set({
+  myName = name;
+  localStorage.setItem("myName", myName);
+
+  await supabase.from("users").upsert({
     name: myName,
     online: true,
-    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
+    last_seen: new Date().toISOString()
+  });
 
-  // تبديل الشاشات
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("appScreen").style.display = "block";
-
-  setupTabs();
-  loadPublicMessages();
+  showScreen("listScreen");
   loadUsers();
-
-  // تحديث تلقائي كل 3 ثواني
-  setInterval(() => {
-    loadPublicMessages();
-    loadUsers();
-    if(selectedChat) loadPrivateMessages(selectedChat);
-  }, 3000);
+  setInterval(loadUsers, 5000);
 }
 
-// علامات التبويب
-function setupTabs(){
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById(tab.dataset.view + "View").classList.add("active");
-    });
-  });
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-// رسائل عامة
-async function loadPublicMessages(){
-  const snap = await db.collection("public").orderBy("time", "desc").limit(15).get();
-  const container = document.getElementById("publicMessages");
-  container.innerHTML = "";
-  snap.docs.reverse().forEach(doc => {
-    const m = doc.data();
-    container.innerHTML += `
-      <div class="msg">
-        <div class="name">${escapeHtml(m.name)}</div>
-        <div>${escapeHtml(m.text)}</div>
-      </div>`;
-  });
-  container.scrollTop = container.scrollHeight;
-}
-
-async function sendPublic(){
-  const input = document.getElementById("publicInput");
-  const text = input.value.trim();
-  if(!text) return;
-  input.value = "";
-  await db.collection("public").add({
-    name: myName,
-    text: text,
-    time: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  await loadPublicMessages();
-}
-
-// قائمة المستخدمين
 async function loadUsers(){
-  const snap = await db.collection("users").get();
-  const container = document.getElementById("userList");
-  container.innerHTML = "";
-  snap.docs.forEach(doc => {
-    const u = doc.data();
-    if(u.name === myName) return;
-    const isOnline = u.online && u.lastSeen && (Date.now() - u.lastSeen.toDate?.()?.getTime() < 10000);
-    container.innerHTML += `
-      <div class="msg" style="cursor:pointer" onclick="openChat('${escapeHtml(u.name)}')">
-        <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
-        ${escapeHtml(u.name)}
-      </div>`;
-  });
-}
-
-function openChat(withName){
-  selectedChat = withName;
-  document.querySelector('[data-view="private"]').click();
-  loadPrivateMessages(withName);
-}
-
-async function loadPrivateMessages(withName){
-  const ids = [myName, withName].sort();
-  const chatId = ids.join("_");
-  const snap = await db.collection("private").doc(chatId).collection("messages")
-    .orderBy("time", "desc").limit(15).get();
-  const container = document.getElementById("privateMessages");
-  container.innerHTML = `<h4>محادثة مع ${escapeHtml(withName)}</h4>`;
-  snap.docs.reverse().forEach(doc => {
-    const m = doc.data();
-    container.innerHTML += `
-      <div class="msg">
-        <div class="name">${escapeHtml(m.name)}</div>
-        <div>${escapeHtml(m.text)}</div>
-      </div>`;
-  });
-  container.scrollTop = container.scrollHeight;
-}
-
-async function sendPrivate(){
-  if(!selectedChat){ alert("اختر شخصاً أولاً من قائمة «الناس» ✋"); return; }
-  const input = document.getElementById("privateInput");
-  const text = input.value.trim();
-  if(!text) return;
-  input.value = "";
-  const ids = [myName, selectedChat].sort();
-  const chatId = ids.join("_");
-  await db.collection("private").doc(chatId).collection("messages").add({
-    name: myName,
-    text: text,
-    time: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  await loadPrivateMessages(selectedChat);
-}
-
-// الذكاء الاصطناعي
-async function askAI(){
-  const input = document.getElementById("aiInput");
-  const text = input.value.trim();
-  if(!text) return;
-  input.value = "";
-  const container = document.getElementById("aiMessages");
-  container.innerHTML += `
-    <div class="msg">
-      <div class="name">أنت</div>
-      <div>${escapeHtml(text)}</div>
-    </div>`;
+  const {data} = await supabase.from("users").select("*");
+  const list = document.getElementById("userList");
+  list.innerHTML = "";
   
-  // إجابة بسيطة محلية (تشتغل بدون نت كمرحلة أولى)
-  setTimeout(() => {
-    let reply = "تم استلام سؤالك ✅ هذا تطبيق تواصل تم تطويره خصيصاً لك 🤝";
-    if(text.includes("اسمك") || text.includes("من أنت")) reply = "أنا مساعدك الذكي في تطبيق «تواصل» 🤝 تم إنشائي لمساعدتك في التواصل والإجابة على أسئلتك!";
-    if(text.includes("كيف") && text.includes("استخدام")) reply = "ببساطة: اكتب اسمك واضغط «ابدأ» → ترسل رسائل عامة للجميع، ورسائل خاصة لمن تختار، وتسألني في أي وقت 😊";
-    if(text.includes("ليبيا") || text.includes("مسلاتة") || text.includes("طرابلس")) reply = "ليبيا بلد الكرام 🇱🇾 التطبيق مصمم ليشتغل معاكم بكل سهولة من أي مكان ❤️";
-    
-    container.innerHTML += `
-      <div class="msg">
-        <div class="name">🤖 المساعد الذكي</div>
-        <div>${reply}</div>
-      </div>`;
-    container.scrollTop = container.scrollHeight;
-  }, 600);
+  data.forEach(u=>{
+    if(u.name === myName) return;
+    const isOnline = u.online && (Date.now() - new Date(u.last_seen).getTime()) < 60000;
+    list.innerHTML += `
+      <div class="user-item" onclick="openChat('${u.name}')">
+        <span class="status-dot ${isOnline?'online':''}"></span>
+        <span>${u.name}</span>
+      </div>
+    `;
+  });
 }
 
-// حماية بسيطة
-function escapeHtml(str){
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+async function openChat(name){
+  chatWith = name;
+  document.getElementById("chatName").textContent = name;
+  showScreen("chatScreen");
+  loadMessages();
 }
 
-// تحديث حالة الاتصال
-window.addEventListener("beforeunload", async () => {
+function backToList(){
+  chatWith = null;
+  showScreen("listScreen");
+  loadUsers();
+}
+
+async function loadMessages(){
+  if(!chatWith) return;
+  const {data} = await supabase
+    .from("messages")
+    .select("*")
+    .or(`and(sender.eq.${myName},receiver.eq.${chatWith}),and(sender.eq.${chatWith},receiver.eq.${myName})`)
+    .order("created_at",{ascending:true});
+
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  data.forEach(m=>{
+    box.innerHTML += `<div class="msg ${m.sender===myName?'me':'other'}">${m.text}</div>`;
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendMsg(){
+  const input = document.getElementById("msgInput");
+  const text = input.value.trim();
+  if(!text || !chatWith) return;
+
+  input.value = "";
+  await supabase.from("messages").insert({
+    sender: myName,
+    receiver: chatWith,
+    text: text
+  });
+  loadMessages();
+}
+
+setInterval(()=>{
+  if(chatWith) loadMessages();
+}, 2000);
+
+setInterval(()=>{
   if(myName){
-    await db.collection("users").doc(myName).set({ online: false }, { merge: true });
+    supabase.from("users").upsert({
+      name: myName,
+      online: true,
+      last_seen: new Date().toISOString()
+    });
   }
-});
+}, 30000);
+
+if(myName){
+  document.getElementById("nameInput").value = myName;
+  startApp();
+}
 </script>
 </body>
 </html>
