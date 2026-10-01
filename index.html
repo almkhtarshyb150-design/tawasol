@@ -144,8 +144,9 @@
 </div>
 
 <script>
+// ✅ الإعدادات الصحيحة لمشروعك
 const SUPABASE_URL = "https://unmulvjcgzppxluxvlrg.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubXVsdmpjZ3pwcHhsdXh2bHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NTYxNDUsImV4cCI6MjEwNjQzMjE0NX0.YUVHUoAPLYOilVP9pT5qfEbzGuHwQVh2_iUVwn3hPPE";
+const SUPABASE_KEY = "ضع-المفتاح-الكامل-هنا-مكان-هذا-الكلام";
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -166,9 +167,6 @@ let localStream = null, remoteStream = null;
 let isAudioOnly = false, isMuted = false, facingMode = "user";
 let processingSignal = false, audioCtx = null;
 
-function logErr(label, err) { console.error(label, err); }
-
-// 🔔 إشعار صوتي
 function playNotif() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -188,7 +186,6 @@ function playNotif() {
   } catch (e) {}
 }
 
-// 🌙☀️ الوضع
 function applyTheme() {
   const theme = localStorage.getItem("tawasol_theme") || "dark";
   document.body.classList.toggle("light", theme === "light");
@@ -200,7 +197,6 @@ function toggleTheme() {
   document.getElementById("themeBtn").textContent = isLight ? "☀️" : "🌙";
 }
 
-// 😀 إيموجي
 const EMOJIS = ["😀","😂","😍","🥰","😎","🤔","😢","😭","😡","👍","👎","🙏","👋","❤️","💔","🔥","✨","🎉","🌹","☕","🍕","⚽","🌟","💯","✅","❌","⚡","💡","🎵","🚀","🌙","☀️","🍀","🎁"];
 function buildEmojiPicker() {
   const p = document.getElementById("emojiPicker");
@@ -269,8 +265,8 @@ async function logout() {
 }
 
 async function loadUsers() {
-  const { data, error } = await db.from("users").select("*");
-  if (error || !data) return;
+  const { data } = await db.from("users").select("*");
+  if (!data) return;
   const list = document.getElementById("usersList"); list.innerHTML = "";
   data.forEach(u => {
     if (u.name === currentUser) return;
@@ -307,10 +303,9 @@ async function deleteMessage(id) {
 
 async function loadMessages() {
   if (!activeChatWith) return;
-  const { data, error } = await db.from("messages")
+  const { data } = await db.from("messages")
     .or(`and(from.eq.${currentUser},to.eq.${activeChatWith}),and(from.eq.${activeChatWith},to.eq.${currentUser})`)
     .order("time", { ascending: true });
-  if (error) return;
   const box = document.getElementById("messagesBox"); box.innerHTML = "";
   if (!data) return;
   data.forEach(m => {
@@ -497,4 +492,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('beforeunload', () => {
   if (!currentUser) return;
-  db.from("users").upsert({ name: currentUser, online: false, last
+  db.from("users").upsert({ name: currentUser, online: false, last_seen: new Date().toISOString() });
+});
+</script>
+</body>
+</html>
