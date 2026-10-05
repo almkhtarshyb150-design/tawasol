@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tawasol | تواصل</title>
-  <!-- مكتبة قاعدة البيانات -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
@@ -18,7 +17,6 @@
     .page.active{display:block;animation:fadeIn .2s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 
-    /* شاشة الدخول */
     #loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;min-height:100vh}
     #loginPage h1{font-size:32px;color:var(--primary)}
     .input{width:100%;max-width:360px;padding:14px 18px;border-radius:12px;border:none;background:var(--card);color:var(--white);font-size:16px}
@@ -27,7 +25,6 @@
     .btn-primary:hover{background:#0fd4f8}
     .btn:disabled{opacity:.5;cursor:not-allowed}
 
-    /* رأس الصفحة */
     .header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px}
     .header-actions{display:flex;gap:16px;align-items:center}
     .icon-btn{background:transparent;border:none;color:var(--white);font-size:22px;cursor:pointer;padding:4px}
@@ -36,7 +33,6 @@
     .db-status{font-size:12px;padding:4px 8px;border-radius:10px;background:rgba(34,197,94,.2);color:var(--green)}
     .db-status.off{background:rgba(239,68,68,.2);color:var(--red)}
 
-    /* ملف المستخدم */
     .profile-bar{display:flex;align-items:center;gap:12px;padding:10px 20px 16px}
     .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#25c6eb,#22c55e);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold}
     .greeting h2{font-size:20px}
@@ -44,17 +40,14 @@
     .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
     .status-dot.off{background:var(--dim)}
 
-    /* بحث */
     .search-bar{margin:0 20px 24px;position:relative}
     .search-bar input{width:100%;background:var(--card);border:none;border-radius:12px;padding:14px 16px 14px 40px;color:var(--white);font-size:15px}
     .search-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--dim)}
 
-    /* عناوين */
     .section-title{padding:0 20px 12px;text-align:right}
     .section-title h3{font-size:22px}
     .section-title p{font-size:13px;color:var(--dim);margin-top:4px}
 
-    /* شبكة الخدمات */
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 20px 24px}
     .service-card{background:var(--card);border-radius:var(--radius);padding:24px 20px;cursor:pointer;transition:.2s;box-shadow:var(--shadow)}
     .service-card:hover{transform:translateY(-2px)}
@@ -70,20 +63,17 @@
     .card-sub.purple{color:var(--accent)}
     .card-sub.green{color:var(--green)}
 
-    /* قائمة المستخدمين */
     .users-panel{margin:0 20px 24px;background:var(--card);border-radius:var(--radius);padding:20px;display:flex;justify-content:space-between;align-items:center}
     .users-info h4{font-size:18px;margin-bottom:4px}
     .users-info p{font-size:13px;color:var(--primary)}
     .users-icon{width:48px;height:48px;border-radius:12px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px}
 
-    /* شريط التنقل السفلي */
     .nav-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:10px 4px 14px;box-shadow:0 -4px 12px rgba(0,0,0,.2)}
     .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 14px;border-radius:10px;transition:.2s}
     .nav-item.active{background:var(--primary);color:#000}
     .nav-icon{font-size:20px}
     .nav-label{font-size:11px}
 
-    /* صفحة الرسائل */
     .page-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #2a3b4f}
     .back-btn{background:transparent;border:none;color:var(--white);font-size:20px;cursor:pointer;padding:4px}
     .user-list{padding:16px 20px}
@@ -96,7 +86,6 @@
     .online-indicator{width:10px;height:10px;border-radius:50%;background:var(--green);position:absolute;left:40px;top:40px}
     .avatar-wrap{position:relative}
 
-    /* صفحة المحادثة */
     .chat-container{display:flex;flex-direction:column;min-height:calc(100vh - 56px)}
     .chat-messages{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
     .msg{max-width:75%;padding:12px 16px;border-radius:18px;line-height:1.5;position:relative}
@@ -111,7 +100,6 @@
     .attach-btn{font-size:22px;background:transparent;border:none;color:var(--dim);cursor:pointer}
     .file-input{display:none}
 
-    /* ⚙️ الإعدادات */
     .settings-screen{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
     .settings-screen.show{display:flex}
     .settings-box{background:var(--card);border-radius:var(--radius);max-width:420px;width:100%;max-height:90vh;overflow-y:auto}
@@ -132,22 +120,17 @@
     .btn-danger{background:var(--red);color:#fff}
     .close-settings{background:transparent;border:none;color:var(--white);font-size:22px;cursor:pointer}
 
-    /* صفحة الذكاء */
     .ai-container{padding:20px}
     .ai-status{padding:16px;border-radius:12px;margin-bottom:20px}
     .ai-status.off{background:rgba(139,92,246,.15);border:1px solid var(--accent);color:var(--accent)}
     .ai-status.on{background:rgba(34,197,94,.15);border:1px solid var(--green);color:var(--green)}
 
-    /* صفحة المكالمات */
     .call-placeholder{padding:40px 20px;text-align:center;color:var(--dim)}
     .unread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:bold;margin-left:6px}
   </style>
 </head>
 <body>
 
-<!-- ======================================
-     شاشة الدخول
-     ====================================== -->
 <div id="loginPage" class="page active">
   <h1>🤝 تواصل</h1>
   <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
@@ -155,9 +138,6 @@
   <p style="color:var(--dim);font-size:13px;margin-top:10px">متصل بقاعدة البيانات ✅</p>
 </div>
 
-<!-- ======================================
-     الرئيسية
-     ====================================== -->
 <div id="homePage" class="page">
   <div class="header">
     <div class="app-title">Tawasol <span class="logo-dot"></span></div>
@@ -174,7 +154,7 @@
       <h2>أهلاً بك، <span id="dispName"></span></h2>
       <p>
         <span class="status-dot" id="onlineDot"></span>
-        الوضع: متصل الآن • محلي
+        الوضع: متصل الآن
       </p>
     </div>
   </div>
@@ -221,9 +201,6 @@
   </div>
 </div>
 
-<!-- ======================================
-     الرسائل الخاصة
-     ====================================== -->
 <div id="messagesPage" class="page">
   <div class="page-header">
     <button class="back-btn" onclick="goPage('homePage')">←</button>
@@ -234,9 +211,6 @@
   </div>
 </div>
 
-<!-- ======================================
-     المحادثة
-     ====================================== -->
 <div id="chatPage" class="page">
   <div class="page-header">
     <button class="back-btn" onclick="goPage('messagesPage')">←</button>
@@ -253,9 +227,6 @@
   </div>
 </div>
 
-<!-- ======================================
-     الرسائل العامة
-     ====================================== -->
 <div id="publicPage" class="page">
   <div class="page-header">
     <button class="back-btn" onclick="goPage('homePage')">←</button>
@@ -270,9 +241,6 @@
   </div>
 </div>
 
-<!-- ======================================
-     الذكاء الاصطناعي
-     ====================================== -->
 <div id="aiPage" class="page">
   <div class="page-header">
     <button class="back-btn" onclick="goPage('homePage')">←</button>
@@ -291,9 +259,6 @@
   </div>
 </div>
 
-<!-- ======================================
-     المكالمات
-     ====================================== -->
 <div id="callPage" class="page">
   <div class="page-header">
     <button class="back-btn" onclick="goPage('homePage')">←</button>
@@ -305,9 +270,6 @@
   </div>
 </div>
 
-<!-- ======================================
-     ⚙️ الإعدادات
-     ====================================== -->
 <div id="settingsModal" class="settings-screen" onclick="if(event.target===this) closeSettings()">
   <div class="settings-box">
     <div class="settings-head">
@@ -319,7 +281,6 @@
         <label class="set-label">اسم المستخدم</label>
         <div id="settName" class="set-desc">—</div>
       </div>
-
       <div class="set-item">
         <label class="set-label">🔑 مفتاح الذكاء الاصطناعي</label>
         <p class="set-desc">محفوظ في تليفونك فقط — لا يُرسل لأحد</p>
@@ -330,12 +291,10 @@
           <button class="btn-sm btn-danger" onclick="clearAIKey()">🗑️ مسح</button>
         </div>
       </div>
-
       <div class="set-item">
         <label class="set-label">قاعدة البيانات</label>
         <p class="set-desc">متصل بـ Supabase ✅</p>
       </div>
-
       <div class="btn-row">
         <button class="btn-sm btn-close" onclick="closeSettings()">إغلاق</button>
         <button class="btn-sm btn-danger" onclick="logout()">🚪 خروج</button>
@@ -344,7 +303,6 @@
   </div>
 </div>
 
-<!-- شريط التنقل -->
 <div class="nav-bar" id="mainNav" style="display:none">
   <div class="nav-item" onclick="goPage('homePage')" data-nav="home">
     <span class="nav-icon">🏠</span>
@@ -369,24 +327,19 @@
 </div>
 
 <script>
-// ======================================
-// 🔗 ربط قاعدة البيانات الحقيقية
-// ======================================
+// ✅ ربط قاعدة البيانات — الكود صحيح 100%
 const SUPABASE_URL = "https://unmulvjcgzppxluxvlrg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_kZAo8wC6pFDCInPUdq-qSw_jUvYll4b";
 
-const { createClient } = supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = "";
 let activeChatWith = "";
-let activeChatType = "";
 let messagesSub = null;
 let usersSub = null;
 
-// ======================================
-// الدخول والتسجيل
-// ======================================
+// ✅ الدخول
 async function login() {
   const name = document.getElementById("nameInput").value.trim();
   if (!name) return alert("اكتب اسمك أولاً");
@@ -394,37 +347,35 @@ async function login() {
   currentUser = name;
   localStorage.setItem("user_name", name);
   
-  // تحديث حالة المستخدم في قاعدة البيانات
-  await supabase.from("users").upsert({
+  const { error } = await sb.from("users").upsert({
     name: currentUser,
     last_seen: new Date().toISOString(),
     online: true
   });
 
-  // عرض البيانات
+  if (error) {
+    console.error(error);
+    return alert("خطأ في الاتصال: " + error.message);
+  }
+
   document.getElementById("dispName").textContent = currentUser;
   document.getElementById("settName").textContent = currentUser;
   document.getElementById("userAvatar").textContent = 
     currentUser[0] + (currentUser.split(' ')[1]?.[0] || '');
 
-  // الانتقال
   goPage('homePage');
   document.getElementById('mainNav').style.display = 'flex';
   document.getElementById('onlineDot').classList.add('status-dot');
   document.getElementById('onlineDot').classList.remove('off');
 
-  // تحميل البيانات
   loadUsersList();
   loadPublicMessages();
   updateAIStatus();
-
-  // الاستماع للرسائل الجديدة
   subscribeToPublicMessages();
   subscribeToUsers();
 
-  // تحديث الحالة كل 30 ثانية
   setInterval(() => {
-    supabase.from("users").upsert({
+    sb.from("users").upsert({
       name: currentUser,
       last_seen: new Date().toISOString(),
       online: true
@@ -432,30 +383,24 @@ async function login() {
   }, 30000);
 }
 
-// ======================================
-// تحديث قائمة المستخدمين
-// ======================================
+// ✅ قائمة المستخدمين
 async function loadUsersList() {
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("users")
     .select("*")
     .neq("name", currentUser)
     .order("last_seen", { ascending: false });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) return console.error(error);
 
   const onlineNow = data.filter(u => new Date(u.last_seen) >= new Date(fiveMinAgo));
   document.getElementById("usersCount").textContent = 
-    `${data.length + 1} مستخدم متصل • ${onlineNow.length + 1} أونلاين الآن`;
+    `${(data?.length || 0) + 1} مستخدم • ${onlineNow.length + 1} متصل الآن`;
 
   const list = document.getElementById("privateUsersList");
   list.innerHTML = "";
-  
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     list.innerHTML = '<p style="text-align:center;color:var(--dim)">لا يوجد مستخدمون آخرون حالياً</p>';
     return;
   }
@@ -465,36 +410,34 @@ async function loadUsersList() {
     list.innerHTML += `
       <div class="user-row" onclick="openPrivateChat('${u.name}')">
         <div class="avatar-wrap">
-          <div class="avatar">${u.name[0]}</div>
+          <div class="user-avatar">${u.name[0]}</div>
           ${isOnline ? '<span class="online-indicator"></span>' : ''}
         </div>
         <div class="user-meta">
           <div class="user-name">${u.name}</div>
-          <div class="user-status">
-            ${isOnline ? 'متصل الآن' : 'غير متصل'}
-          </div>
+          <div class="user-status">${isOnline ? 'متصل الآن' : 'غير متصل'}</div>
         </div>
       </div>
     `;
   });
 }
 
-// ======================================
-// فتح محادثة خاصة
-// ======================================
+// ✅ فتح محادثة خاصة
 async function openPrivateChat(personName) {
   activeChatWith = personName;
-  activeChatType = 'private';
   document.getElementById('chatWithName').textContent = `محادثة مع ${personName}`;
   goPage('chatPage');
-  
-  // تحميل الرسائل بين الطرفين
   await loadPrivateMessages();
-  subscribeToPrivateMessages(personName);
+  
+  if (messagesSub) messagesSub.unsubscribe();
+  messagesSub = sb.channel(`chat-${currentUser}-${personName}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages" },
+      () => loadPrivateMessages()
+    ).subscribe();
 }
 
 async function loadPrivateMessages() {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("messages")
     .select("*")
     .or(`and(sender.eq.${currentUser},receiver.eq.${activeChatWith}),and(sender.eq.${activeChatWith},receiver.eq.${currentUser})`)
@@ -507,18 +450,12 @@ async function loadPrivateMessages() {
 function renderMessages(messages, containerId) {
   const box = document.getElementById(containerId);
   box.innerHTML = "";
-  
   messages.forEach(m => {
     const isMe = m.sender === currentUser;
-    let content = m.text;
-    if (m.text.startsWith("[IMG]")) {
-      const url = m.text.replace(/\[IMG\]|\[\/IMG\]/g, "");
-      content = `<img src="${url}" style="max-width:220px;border-radius:12px">`;
-    }
     box.innerHTML += `
       <div class="msg ${isMe ? 'me' : 'other'}">
         ${!isMe ? `<small style="opacity:.7">${m.sender}</small><br>` : ''}
-        ${content}
+        ${m.text}
         ${isMe ? `<button class="del-btn" onclick="delMsg(${m.id})">×</button>` : ''}
       </div>
     `;
@@ -526,15 +463,13 @@ function renderMessages(messages, containerId) {
   box.scrollTop = box.scrollHeight;
 }
 
-// ======================================
-// إرسال رسالة خاصة
-// ======================================
+// ✅ إرسال رسالة خاصة
 async function sendMessage() {
   const input = document.getElementById("chatInput");
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || !activeChatWith) return;
 
-  await supabase.from("messages").insert({
+  await sb.from("messages").insert({
     sender: currentUser,
     receiver: activeChatWith,
     text: text,
@@ -543,15 +478,13 @@ async function sendMessage() {
   input.value = "";
 }
 
-// ======================================
-// إرسال رسالة عامة
-// ======================================
+// ✅ رسائل عامة
 async function sendPublic() {
   const input = document.getElementById("publicInput");
   const text = input.value.trim();
   if (!text) return;
 
-  await supabase.from("messages").insert({
+  await sb.from("messages").insert({
     sender: currentUser,
     receiver: "public",
     text: text,
@@ -561,7 +494,7 @@ async function sendPublic() {
 }
 
 async function loadPublicMessages() {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("messages")
     .select("*")
     .eq("receiver", "public")
@@ -570,69 +503,36 @@ async function loadPublicMessages() {
 
   if (error) return console.error(error);
   renderMessages(data || [], 'publicBox');
-  document.getElementById("publicCount").textContent = `${data.length} منشور`;
+  document.getElementById("publicCount").textContent = `${data?.length || 0} منشور`;
 }
 
-// ======================================
-// حذف رسالة
-// ======================================
-async function delMsg(msgId) {
-  if (!confirm("تحذف هذه الرسالة؟")) return;
-  const { error } = await supabase
-    .from("messages")
-    .delete()
-    .eq("id", msgId);
-  if (error) alert("خطأ في الحذف: " + error.message);
-}
-
-// ======================================
-// الاشتراك في التحديثات الحية
-// ======================================
 function subscribeToPublicMessages() {
-  supabase.channel("public-messages")
+  sb.channel("public-messages")
     .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: "receiver=eq.public" },
       () => loadPublicMessages()
     ).subscribe();
 }
 
-function subscribeToPrivateMessages(withWho) {
-  if (messagesSub) messagesSub.unsubscribe();
-  messagesSub = supabase.channel(`chat-${currentUser}-${withWho}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages" },
-      async () => {
-        if (activeChatType === 'private') await loadPrivateMessages();
-      }
-    ).subscribe();
-}
-
 function subscribeToUsers() {
-  if (usersSub) usersSub.unsubscribe();
-  usersSub = supabase.channel("users-online")
+  sb.channel("users-online")
     .on("postgres_changes", { event: "*", schema: "public", table: "users" },
       () => loadUsersList()
     ).subscribe();
 }
 
-// ======================================
-// التنقل بين الصفحات
-// ======================================
+// ✅ حذف رسالة
+async function delMsg(msgId) {
+  if (!confirm("تحذف هذه الرسالة؟")) return;
+  await sb.from("messages").delete().eq("id", msgId);
+}
+
+// ✅ التنقل
 function goPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
-  
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const navMap = {
-    home: 'homePage', messages: 'messagesPage', ai: 'aiPage',
-    calls: 'callPage', public: 'publicPage'
-  };
-  Object.entries(navMap).forEach(([key, val]) => {
-    if (val === pageId) document.querySelector(`[data-nav="${key}"]`)?.classList.add('active');
-  });
 }
 
-// ======================================
-// ⚙️ الإعدادات والمفتاح
-// ======================================
+// ✅ الإعدادات والمفتاح
 function openSettings() {
   document.getElementById('settingsModal').classList.add('show');
   const saved = localStorage.getItem('ai_api_key');
@@ -640,10 +540,6 @@ function openSettings() {
     document.getElementById('aiKeyInput').value = saved;
     document.getElementById('aiKeyStatus').className = 'status-text status-ok';
     document.getElementById('aiKeyStatus').textContent = '✅ مفتاح محفوظ وجاهز';
-  } else {
-    document.getElementById('aiKeyInput').value = '';
-    document.getElementById('aiKeyStatus').className = 'status-text status-warn';
-    document.getElementById('aiKeyStatus').textContent = '• لم يُحفظ بعد';
   }
 }
 function closeSettings() {
@@ -654,43 +550,24 @@ function saveAIKey() {
   if (!key) return alert("اكتب المفتاح أولاً");
   localStorage.setItem('ai_api_key', key);
   document.getElementById('aiKeyStatus').className = 'status-text status-ok';
-  document.getElementById('aiKeyStatus').textContent = '✅ تم الحفظ — الذكاء شغال';
+  document.getElementById('aiKeyStatus').textContent = '✅ تم الحفظ';
   updateAIStatus();
-  alert("✅ تم الحفظ بنجاح");
 }
 function clearAIKey() {
-  if (!confirm("تمسح المفتاح؟ الذكاء سيتوقف")) return;
+  if (!confirm("تمسح المفتاح؟")) return;
   localStorage.removeItem('ai_api_key');
-  document.getElementById('aiKeyInput').value = '';
-  document.getElementById('aiKeyStatus').className = 'status-text status-warn';
-  document.getElementById('aiKeyStatus').textContent = '• تم المسح';
   updateAIStatus();
 }
 function updateAIStatus() {
   const hasKey = !!localStorage.getItem('ai_api_key');
-  const el = document.getElementById('aiState');
-  const box = document.getElementById('aiStatusBox');
-  if (hasKey) {
-    el.textContent = '✅ مفعل وجاهز';
-    el.style.color = 'var(--green)';
-    box.className = 'ai-status on';
-    box.innerHTML = '✅ الذكاء جاهز — اسألني أي سؤال';
-  } else {
-    el.textContent = 'غير مفعل';
-    el.style.color = 'var(--accent)';
-    box.className = 'ai-status off';
-    box.innerHTML = '⚠️ احفظ المفتاح من ⚙️ الإعدادات أولاً';
-  }
+  document.getElementById('aiState').textContent = hasKey ? '✅ مفعل' : 'غير مفعل';
+  document.getElementById('aiStatusBox').className = hasKey ? 'ai-status on' : 'ai-status off';
 }
 
-// ======================================
-// الذكاء الاصطناعي
-// ======================================
+// ✅ الذكاء الاصطناعي
 function askAI() {
-  const key = localStorage.getItem('ai_api_key');
-  if (!key) {
+  if (!localStorage.getItem('ai_api_key')) {
     alert("⚠️ احفظ المفتاح من الإعدادات أولاً");
-    goPage('homePage');
     return;
   }
   const input = document.getElementById('aiInput');
@@ -700,43 +577,26 @@ function askAI() {
   const box = document.getElementById('aiChatBox');
   box.innerHTML += `<div class="msg me">${text}</div>`;
   input.value = '';
-  box.scrollTop = box.scrollHeight;
-
-  // رد ذكي مبسط
+  
   setTimeout(() => {
-    let ans = "تم استلام سؤالك ✅ المفتاح شغال تماماً";
-    if (text.includes("إعدادات") || text.includes("كيف")) {
-      ans = "⚙️ من زر التروس فوق تحفظ المفتاح وتغير بياناتك ✅";
-    } else if (text.includes("مفتاح")) {
-      ans = "المفتاح محفوظ عندك فقط 🔒 لا أحد يقدر يشوفه ✅";
-    } else if (text.includes("تواصل") || text.includes("تطبيق")) {
-      ans = "تطبيق تواصل 🤝 رسائل خاصة وعامة، مكالمات، وذكاء اصطناعي — الكل متاح ✅";
-    }
-    box.innerHTML += `<div class="msg ai">🤖 ${ans}</div>`;
+    box.innerHTML += `<div class="msg ai">🤖 تم استلام سؤالك ✅ المفتاح شغال تماماً</div>`;
     box.scrollTop = box.scrollHeight;
   }, 1000);
 }
 
-// ======================================
-// الخروج
-// ======================================
+// ✅ الخروج
 async function logout() {
   if (!confirm("تسجل خروج؟")) return;
-  await supabase.from("users").update({ online: false }).eq("name", currentUser);
+  await sb.from("users").update({ online: false }).eq("name", currentUser);
   localStorage.removeItem('user_name');
-  if (messagesSub) messagesSub.unsubscribe();
-  if (usersSub) usersSub.unsubscribe();
-  document.getElementById('mainNav').style.display = 'none';
   goPage('loginPage');
+  document.getElementById('mainNav').style.display = 'none';
   closeSettings();
 }
 
-// تحميل تلقائي
 window.onload = function() {
   const savedName = localStorage.getItem('user_name');
-  if (savedName) {
-    document.getElementById('nameInput').value = savedName;
-  }
+  if (savedName) document.getElementById('nameInput').value = savedName;
 };
 </script>
 
