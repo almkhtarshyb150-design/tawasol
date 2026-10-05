@@ -328,8 +328,33 @@
 
 <script>
 // ✅ ربط قاعدة البيانات — الكود صحيح 100%
-const SUPABASE_URL = "https://unmulvjcgzppxluxvlrg.supabase.co";
-const SUPABASE_KEY = "sb_publishable_kZAo8wC6pFDCInPUdq-qSw_jUvYll4b";
+-- أنشئ الجداول
+create table if not exists users (
+  name text primary key,
+  last_seen timestamp with time zone default now(),
+  online boolean default true
+);
+
+create table if not exists messages (
+  id bigint generated always as identity primary key,
+  sender text not null,
+  receiver text not null,
+  text text not null,
+  created_at timestamp with time zone default now()
+);
+
+-- فعّل الحماية
+alter table users enable row level security;
+alter table messages enable row level security;
+
+-- امسح السياسات لو موجودة
+drop policy if exists users_all on users;
+drop policy if exists messages_all on messages;
+
+-- أنشئ السياسات من جديد
+create policy users_all on users for all using (true) with check (true);
+create policy messages_all on messages for all using (true) with check (true);
+";
 
 const { createClient } = window.supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
