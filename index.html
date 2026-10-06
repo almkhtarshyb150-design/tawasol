@@ -6,152 +6,252 @@
   <title>تواصل 🤝</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
-    :root{
-      --bg:#0f1b2b; --card:#1a2c42; --primary:#25c6eb; --green:#22c55e;
-      --red:#ef4444; --white:#fff; --dim:#94a3b8
+    
+    body{
+      background:#0b1426;
+      min-height:100vh;
+      color:#fff;
     }
-    body{background:var(--bg);color:var(--white);min-height:100vh;direction:rtl}
-    .page{display:none;min-height:100vh;padding-bottom:90px}
-    .page.active{display:block;animation:fadeIn .2s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 
-    /* شاشة الدخول */
-    #loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;min-height:100vh}
-    #loginPage h1{font-size:36px;color:var(--primary)}
-    .input{width:100%;max-width:360px;padding:14px 18px;border-radius:12px;border:none;background:var(--card);color:var(--white);font-size:16px}
-    .btn{padding:14px 32px;border-radius:12px;border:none;font-size:16px;font-weight:bold;cursor:pointer;transition:.2s}
-    .btn-primary{background:var(--primary);color:#000;width:100%;max-width:360px}
-    .btn-primary:hover{background:#0fd4f8}
-    .note{color:var(--dim);font-size:13px;margin-top:10px}
-    .offline-note{color:#22c55e;font-size:13px;margin-top:5px}
+    /* === شاشة الدخول — بالضبط زي الصورة === */
+    #loginPage{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:30px 20px;
+    }
+    .app-title{
+      font-size:42px;
+      font-weight:bold;
+      color:#00ccff;
+      margin-bottom:60px;
+    }
+    .name-input{
+      width:100%;
+      max-width:340px;
+      padding:16px 20px;
+      border-radius:12px;
+      border:none;
+      background:#162544;
+      color:#fff;
+      font-size:16px;
+      text-align:right;
+      margin-bottom:20px;
+    }
+    .name-input::placeholder{color:#6b7a99}
+    .start-btn{
+      width:100%;
+      max-width:340px;
+      padding:16px;
+      border-radius:12px;
+      border:none;
+      background:#00ccff;
+      color:#000;
+      font-size:18px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-bottom:15px;
+    }
+    .start-btn:hover{background:#33d9ff}
+    .status-text{
+      color:#22c55e;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
 
-    /* رأس الصفحة */
-    .header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px}
-    .app-title{font-size:26px;font-weight:700;color:var(--primary)}
-    .icon-btn{background:transparent;border:none;color:var(--white);font-size:22px;cursor:pointer;padding:4px}
+    /* === باقي الصفحات === */
+    .page{display:none;min-height:100vh;padding:20px}
+    .page.active{display:block}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+    .back-btn{background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer}
+    .settings-btn{background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer}
+    
+    .profile{text-align:center;margin-bottom:40px}
+    .avatar{
+      width:70px;height:70px;border-radius:50%;
+      background:linear-gradient(135deg,#00ccff,#22c55e);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:28px;font-weight:bold;margin-bottom:10px
+    }
+    .greeting{font-size:22px;font-weight:bold;margin-bottom:5px}
+    .sub-info{color:#8898b4;font-size:14px}
 
-    /* ملف المستخدم */
-    .profile-bar{display:flex;align-items:center;gap:12px;padding:10px 20px 16px}
-    .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#25c6eb,#22c55e);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold}
-    .greeting h2{font-size:20px}
-    .greeting p{font-size:13px;color:var(--dim);margin-top:4px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;max-width:400px;margin:0 auto}
+    .card{
+      background:#162544;border-radius:16px;padding:25px 20px;
+      text-align:center;cursor:pointer;transition:.2s
+    }
+    .card:hover{background:#1e3055}
+    .card-icon{font-size:30px;margin-bottom:8px}
+    .card-title{font-weight:bold;font-size:15px;margin-bottom:4px}
+    .card-note{color:#6b7a99;font-size:12px}
 
-    /* الأزرار الرئيسية */
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 20px 24px}
-    .service-card{background:var(--card);border-radius:16px;padding:24px 20px;cursor:pointer;transition:.2s}
-    .service-card:hover{transform:translateY(-2px);background:#243850}
-    .card-icon{font-size:32px;margin-bottom:10px}
-    .card-title{font-size:17px;font-weight:600;margin-bottom:4px}
-    .card-sub{font-size:13px;color:var(--dim)}
+    .page-content{max-width:450px;margin:0 auto;padding-top:20px}
+    .page-title{font-size:20px;font-weight:bold;margin-bottom:20px}
+    .placeholder-box{
+      background:#162544;border-radius:16px;padding:40px 25px;text-align:center;
+      color:#8898b4;line-height:1.8
+    }
 
-    /* صفحة الذكاء */
-    .page-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #2a3b4f}
-    .page-header h3{font-size:18px}
-    .chat-container{display:flex;flex-direction:column;min-height:calc(100vh - 56px)}
-    .chat-box{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+    /* الذكاء الاصطناعي */
+    .chat-area{display:flex;flex-direction:column;min-height:70vh}
+    .chat-messages{flex:1;padding-bottom:20px;display:flex;flex-direction:column;gap:12px}
     .msg{max-width:85%;padding:12px 16px;border-radius:18px;line-height:1.5}
-    .msg.me{align-self:flex-end;background:var(--primary);color:#000;border-bottom-right-radius:4px}
-    .msg.ai{align-self:flex-start;background:linear-gradient(135deg,#a855f7,#6366f1);border-bottom-left-radius:4px;max-width:90%}
-    .msg.system{align-self:center;background:#2a3b4f;color:var(--dim);font-size:13px;padding:8px 14px;max-width:95%}
-    .chat-input-bar{display:flex;gap:10px;padding:14px 20px;border-top:1px solid #2a3b4f;align-items:center;position:fixed;bottom:0;left:0;right:0;background:var(--bg)}
-    .chat-input{flex:1;background:var(--card);border:none;border-radius:24px;padding:12px 20px;color:var(--white);font-size:15px;outline:none}
-    .send-btn{width:44px;height:44px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;font-size:18px}
+    .msg.me{align-self:flex-end;background:#00ccff;color:#000;border-bottom-right-radius:4px}
+    .msg.ai{align-self:flex-start;background:linear-gradient(135deg,#a855f7,#6366f1);border-bottom-left-radius:4px}
+    .msg.info{align-self:center;background:#162544;color:#8898b4;font-size:13px;padding:10px 16px}
+    
+    .input-bar{display:flex;gap:10px;padding-top:10px;border-top:1px solid #1e3055}
+    .chat-input{flex:1;background:#162544;border:none;border-radius:24px;padding:12px 20px;color:#fff;font-size:15px}
+    .send-btn{width:44px;height:44px;border-radius:50%;background:#00ccff;border:none;cursor:pointer;font-size:18px}
     .send-btn:disabled{opacity:.5;cursor:not-allowed}
 
     /* الإعدادات */
-    .settings-screen{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-    .settings-screen.show{display:flex}
-    .settings-box{background:var(--card);border-radius:16px;max-width:420px;width:100%;padding:24px}
-    .set-item{margin-bottom:20px}
-    .set-label{font-size:15px;font-weight:600;margin-bottom:8px;display:block}
-    .set-input{width:100%;padding:12px 16px;border-radius:10px;border:none;background:#0b141f;color:var(--white);font-size:14px;outline:none}
-    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .btn-sm{padding:10px 20px;border-radius:10px;border:none;font-weight:bold;cursor:pointer}
-    .btn-save{background:var(--green);color:#fff}
+    .settings-modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;
+      display:none;align-items:center;justify-content:center;padding:20px
+    }
+    .settings-modal.show{display:flex}
+    .settings-box{background:#162544;border-radius:16px;width:100%;max-width:400px;padding:25px}
+    .set-label{font-weight:bold;margin-bottom:8px;display:block}
+    .set-input{width:100%;padding:12px 16px;border-radius:10px;border:none;background:#0b1426;color:#fff;margin-bottom:15px}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{padding:10px 20px;border-radius:10px;border:none;font-weight:bold;cursor:pointer}
+    .btn-save{background:#22c55e;color:#fff}
     .btn-close{background:#374151;color:#fff}
-    .btn-danger{background:var(--red);color:#fff}
-    .hint{font-size:12px;color:var(--dim);margin-top:6px}
+    .btn-out{background:#ef4444;color:#fff}
   </style>
 </head>
 <body>
 
-<!-- شاشة الدخول -->
+<!-- 1️⃣ شاشة الدخول — بالضبط زي الصورة -->
 <div id="loginPage" class="page active">
-  <h1>🤝 تواصل</h1>
-  <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
-  <button class="btn btn-primary" onclick="login()">ابدأ التطبيق</button>
-  <p class="offline-note">✅ يشتغل بدون إنترنت — ما يحفظ شيء بعد الإغلاق</p>
-  <p class="note">الذكاء الاصطناعي يحتاج إنترنت فقط</p>
+  <h1 class="app-title">تواصل 🤝</h1>
+  <input type="text" id="nameInput" class="name-input" placeholder="اكتب اسمك...">
+  <button class="start-btn" onclick="login()">ابدأ المحادثة</button>
+  <p class="status-text">✅ متصل — يعمل محلياً بدون خادم</p>
 </div>
 
-<!-- الرئيسية -->
+<!-- 2️⃣ الرئيسية -->
 <div id="homePage" class="page">
   <div class="header">
-    <span class="app-title">تواصل</span>
-    <button class="icon-btn" onclick="openSettings()">⚙️</button>
+    <h2 style="font-size:22px;font-weight:bold">تواصل</h2>
+    <button class="settings-btn" onclick="openSettings()">⚙️</button>
   </div>
 
-  <div class="profile-bar">
-    <div class="avatar" id="myAvatar">أنا</div>
-    <div class="greeting">
-      <h2>أهلاً بك، <span id="myName"></span></h2>
-      <p>✅ جاهز — يعمل محلياً</p>
-    </div>
+  <div class="profile">
+    <div class="avatar" id="myAvatar">أ</div>
+    <h3 class="greeting">أهلاً بك، <span id="myName"></span></h3>
+    <p class="sub-info">✅ جاهز — يعمل بدون إنترنت</p>
   </div>
 
   <div class="grid">
-    <div class="service-card" onclick="goPage('aiPage')">
-      <div class="card-icon">🤖</div>
-      <div class="card-title">المساعد الذكي</div>
-      <div class="card-sub">اسأل الذكاء (يحتاج نت)</div>
-    </div>
-    <div class="service-card" onclick="alert('📢 هذه النسخة عرض فقط — للتواصل مع الآخرين نحتاج قاعدة بيانات')">
+    <div class="card" onclick="goPage('privatePage')">
       <div class="card-icon">💬</div>
       <div class="card-title">الرسائل الخاصة</div>
-      <div class="card-sub">عرض — قيد التطوير</div>
+      <div class="card-note">مراسلة شخص معين</div>
     </div>
-    <div class="service-card" onclick="alert('📢 هذه النسخة عرض فقط')">
+    <div class="card" onclick="goPage('publicPage')">
       <div class="card-icon">📢</div>
       <div class="card-title">الرسائل العامة</div>
-      <div class="card-sub">عرض — قيد التطوير</div>
+      <div class="card-note">للجميع معاً</div>
+    </div>
+    <div class="card" onclick="goPage('callsPage')">
+      <div class="card-icon">📞</div>
+      <div class="card-title">المكالمات</div>
+      <div class="card-note">صوت وفيديو</div>
+    </div>
+    <div class="card" onclick="goPage('aiPage')">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">الذكاء الاصطناعي</div>
+      <div class="card-note">يحتاج إنترنت</div>
     </div>
   </div>
 </div>
 
-<!-- الذكاء الاصطناعي -->
+<!-- 3️⃣ الرسائل الخاصة -->
+<div id="privatePage" class="page">
+  <div class="header">
+    <button class="back-btn" onclick="goPage('homePage')">←</button>
+    <h3 class="page-title">الرسائل الخاصة</h3>
+  </div>
+  <div class="page-content">
+    <div class="placeholder-box">
+      💬 قائمة الأشخاص<br><br>
+      «اختر شخصاً لتبدأ المحادثة»<br>
+      تعمل بدون إنترنت ✅
+    </div>
+  </div>
+</div>
+
+<!-- 4️⃣ الرسائل العامة -->
+<div id="publicPage" class="page">
+  <div class="header">
+    <button class="back-btn" onclick="goPage('homePage')">←</button>
+    <h3 class="page-title">الرسائل العامة</h3>
+  </div>
+  <div class="page-content">
+    <div class="placeholder-box">
+      📢 رسائل الجميع<br><br>
+      «ما تكتبه يظهر للكل»<br>
+      تعمل بدون إنترنت ✅
+    </div>
+  </div>
+</div>
+
+<!-- 5️⃣ المكالمات -->
+<div id="callsPage" class="page">
+  <div class="header">
+    <button class="back-btn" onclick="goPage('homePage')">←</button>
+    <h3 class="page-title">المكالمات</h3>
+  </div>
+  <div class="page-content">
+    <div class="placeholder-box">
+      📞 مكالمات صوت وفيديو<br><br>
+      «اتصل بمن تريد»<br>
+      تعمل بدون إنترنت ✅
+    </div>
+  </div>
+</div>
+
+<!-- 6️⃣ الذكاء الاصطناعي — يحتاج نت -->
 <div id="aiPage" class="page">
-  <div class="page-header">
-    <button class="icon-btn" onclick="goPage('homePage')">←</button>
-    <h3>المساعد الذكي 🤖</h3>
+  <div class="header">
+    <button class="back-btn" onclick="goPage('homePage')">←</button>
+    <h3 class="page-title">الذكاء الاصطناعي 🤖</h3>
   </div>
-  <div class="chat-container">
-    <div class="chat-box" id="aiChatBox">
-      <div class="msg system">أهلاً بك! ✅ الذكاء يحتاج إنترنت ليجاوبك. ضع مفتاحك في الإعدادات ⚙️ أولاً.</div>
-    </div>
-    <div class="chat-input-bar">
-      <input type="text" class="chat-input" id="aiInput" placeholder="اكتب سؤالك هنا..." onkeydown="if(event.key==='Enter')sendAiMsg()">
-      <button class="send-btn" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+  <div class="page-content" style="max-width:100%;padding:0">
+    <div class="chat-area">
+      <div class="chat-messages" id="aiMessages">
+        <div class="msg info">أهلاً بك! ✅ أنا أحتاج إنترنت لأجيبك. ضع مفتاحك في الإعدادات ⚙️ أولاً.</div>
+      </div>
+      <div class="input-bar">
+        <input type="text" id="aiInput" class="chat-input" placeholder="اسألني أي سؤال..." onkeydown="if(event.key==='Enter')sendAi()">
+        <button id="aiSendBtn" class="send-btn" onclick="sendAi()">➤</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- الإعدادات -->
-<div id="settingsModal" class="settings-screen" onclick="if(event.target===this) closeSettings()">
+<!-- ⚙️ الإعدادات -->
+<div id="settingsModal" class="settings-modal" onclick="if(event.target===this) closeSettings()">
   <div class="settings-box">
     <h3 style="margin-bottom:20px">⚙️ الإعدادات</h3>
-    <div class="set-item">
-      <label class="set-label">اسمك</label>
-      <input type="text" class="set-input" id="settName" placeholder="اسمك">
-    </div>
-    <div class="set-item">
-      <label class="set-label">مفتاح الذكاء الاصطناعي</label>
-      <input type="password" class="set-input" id="aiKeyInput" placeholder="أدخل مفتاح Groq هنا">
-      <p class="hint">مثال: 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</p>
-    </div>
+    <label class="set-label">اسمك</label>
+    <input type="text" id="settName" class="set-input" placeholder="اسمك">
+    
+    <label class="set-label">مفتاح الذكاء الاصطناعي</label>
+    <input type="password" id="aiKey" class="set-input" placeholder="أدخل مفتاح Groq هنا">
+    <p style="color:#6b7a99;font-size:12px;margin:-10px 0 15px">مثال: gsk_xxxxxxxxxxxx</p>
+    
     <div class="btn-row">
-      <button class="btn-sm btn-save" onclick="saveSettings()">✅ حفظ</button>
-      <button class="btn-sm btn-close" onclick="closeSettings()">إغلاق</button>
-      <button class="btn-sm btn-danger" onclick="logout()">🚪 خروج</button>
+      <button class="btn btn-save" onclick="saveSettings()">✅ حفظ</button>
+      <button class="btn btn-close" onclick="closeSettings()">إغلاق</button>
+      <button class="btn btn-out" onclick="logout()">🚪 خروج</button>
     </div>
   </div>
 </div>
@@ -167,17 +267,21 @@ function goPage(id){
 }
 
 function login(){
-  const name=document.getElementById('nameInput').value.trim();
+  const name = document.getElementById('nameInput').value.trim();
   if(!name) return alert('اكتب اسمك أولاً');
-  me=name;
-  document.getElementById('myName').textContent=me;
-  document.getElementById('myAvatar').textContent=name.charAt(0).toUpperCase();
-  document.getElementById('settName').value=me;
+  
+  me = name;
+  localStorage.setItem('tawasol_name', me);
+  
+  document.getElementById('myName').textContent = me;
+  document.getElementById('myAvatar').textContent = me[0];
+  document.getElementById('settName').value = me;
+  
   goPage('homePage');
 }
 
 function openSettings(){
-  document.getElementById('aiKeyInput').value=AI_KEY;
+  document.getElementById('aiKey').value = AI_KEY;
   document.getElementById('settingsModal').classList.add('show');
 }
 
@@ -186,33 +290,36 @@ function closeSettings(){
 }
 
 function saveSettings(){
-  const newKey=document.getElementById('aiKeyInput').value.trim();
-  const newName=document.getElementById('settName').value.trim();
+  const newKey = document.getElementById('aiKey').value.trim();
+  const newName = document.getElementById('settName').value.trim();
+  
   if(newKey){
-    AI_KEY=newKey;
-    localStorage.setItem('ai_groq_key',AI_KEY);
+    AI_KEY = newKey;
+    localStorage.setItem('ai_groq_key', AI_KEY);
   }
   if(newName){
-    me=newName;
-    document.getElementById('myName').textContent=me;
-    document.getElementById('myAvatar').textContent=me.charAt(0).toUpperCase();
+    me = newName;
+    localStorage.setItem('tawasol_name', me);
+    document.getElementById('myName').textContent = me;
+    document.getElementById('myAvatar').textContent = me[0];
   }
+  
   alert('✅ تم الحفظ');
   closeSettings();
 }
 
-function addAiMsg(text, isMe=false){
-  const box=document.getElementById('aiChatBox');
-  const div=document.createElement('div');
-  div.className='msg '+(isMe?'me':'ai');
-  div.textContent=text;
+function addMsg(text, isMe=false){
+  const box = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (isMe ? 'me' : 'ai');
+  div.textContent = text;
   box.appendChild(div);
-  box.scrollTop=box.scrollHeight;
+  box.scrollTop = box.scrollHeight;
 }
 
-async function sendAiMsg(){
-  const input=document.getElementById('aiInput');
-  const text=input.value.trim();
+async function sendAi(){
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
   if(!text) return;
   
   if(!AI_KEY){
@@ -220,42 +327,48 @@ async function sendAiMsg(){
     return;
   }
   
-  addAiMsg(text, true);
-  input.value='';
-  const btn=document.getElementById('aiSendBtn');
-  btn.disabled=true;
+  addMsg(text, true);
+  input.value = '';
+  const btn = document.getElementById('aiSendBtn');
+  btn.disabled = true;
   
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':`Bearer ${AI_KEY}`
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AI_KEY}`
       },
-      body:JSON.stringify({
-        model:GROQ_MODEL,
-        messages:[{role:'user',content:text}],
-        temperature:0.7
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{role:'user', content:text}],
+        temperature: 0.7
       })
     });
     
-    if(!res.ok) throw new Error('خطأ في الاتصال');
-    const data=await res.json();
-    const reply=data.choices[0].message.content||'لم أتلق رداً';
-    addAiMsg(reply);
+    if(!res.ok) throw new Error('خطأ');
+    const data = await res.json();
+    addMsg(data.choices[0].message.content || 'لم أجد إجابة');
   }catch(err){
-    addAiMsg('❌ تأكد من اتصال الإنترنت والمفتاح صحيح');
+    addMsg('❌ تأكد من اتصال الإنترنت والمفتاح صحيح');
   }
   
-  btn.disabled=false;
+  btn.disabled = false;
 }
 
 function logout(){
-  if(confirm('تسجيل الخروج؟ سيتم مسح كل شيء')){
-    localStorage.removeItem('ai_groq_key');
+  if(confirm('تخرج؟ سيبقى اسمك محفوظ')){
+    localStorage.removeItem('tawasol_name');
     location.reload();
   }
 }
+
+// دخول تلقائي لو محفوظ
+window.onload = function(){
+  const saved = localStorage.getItem('tawasol_name');
+  if(saved) document.getElementById('nameInput').value = saved;
+};
 </script>
 </body>
-</html>
+  </html>
+  
