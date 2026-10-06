@@ -3,627 +3,259 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tawasol | تواصل</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <title>تواصل 🤝</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
     :root{
-      --bg:#0f1b2b; --card:#1a2c42; --card-alt:#2a2418; --card-ai:#2a2448; --card-vid:#183030;
-      --primary:#25c6eb; --accent:#8b5cf6; --green:#22c55e; --orange:#f59e0b; --red:#ef4444; --white:#fff; --dim:#94a3b8;
-      --shadow:0 4px 12px rgba(0,0,0,.25); --radius:16px
+      --bg:#0f1b2b; --card:#1a2c42; --primary:#25c6eb; --green:#22c55e;
+      --red:#ef4444; --white:#fff; --dim:#94a3b8
     }
-    body{background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden}
+    body{background:var(--bg);color:var(--white);min-height:100vh;direction:rtl}
     .page{display:none;min-height:100vh;padding-bottom:90px}
     .page.active{display:block;animation:fadeIn .2s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 
+    /* شاشة الدخول */
     #loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;min-height:100vh}
-    #loginPage h1{font-size:32px;color:var(--primary)}
+    #loginPage h1{font-size:36px;color:var(--primary)}
     .input{width:100%;max-width:360px;padding:14px 18px;border-radius:12px;border:none;background:var(--card);color:var(--white);font-size:16px}
     .btn{padding:14px 32px;border-radius:12px;border:none;font-size:16px;font-weight:bold;cursor:pointer;transition:.2s}
-    .btn-primary{background:var(--primary);color:#000}
+    .btn-primary{background:var(--primary);color:#000;width:100%;max-width:360px}
     .btn-primary:hover{background:#0fd4f8}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .note{color:var(--dim);font-size:13px;margin-top:10px}
+    .offline-note{color:#22c55e;font-size:13px;margin-top:5px}
 
+    /* رأس الصفحة */
     .header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px}
-    .header-actions{display:flex;gap:16px;align-items:center}
+    .app-title{font-size:26px;font-weight:700;color:var(--primary)}
     .icon-btn{background:transparent;border:none;color:var(--white);font-size:22px;cursor:pointer;padding:4px}
-    .app-title{font-size:28px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
-    .logo-dot{width:10px;height:10px;background:var(--primary);border-radius:50%}
-    .db-status{font-size:12px;padding:4px 8px;border-radius:10px;background:rgba(34,197,94,.2);color:var(--green)}
-    .db-status.off{background:rgba(239,68,68,.2);color:var(--red)}
 
+    /* ملف المستخدم */
     .profile-bar{display:flex;align-items:center;gap:12px;padding:10px 20px 16px}
-    .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#25c6eb,#22c55e);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold}
+    .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#25c6eb,#22c55e);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold}
     .greeting h2{font-size:20px}
-    .greeting p{font-size:13px;color:var(--dim);display:flex;align-items:center;gap:6px;margin-top:2px}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
-    .status-dot.off{background:var(--dim)}
+    .greeting p{font-size:13px;color:var(--dim);margin-top:4px}
 
-    .search-bar{margin:0 20px 24px;position:relative}
-    .search-bar input{width:100%;background:var(--card);border:none;border-radius:12px;padding:14px 16px 14px 40px;color:var(--white);font-size:15px}
-    .search-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--dim)}
-
-    .section-title{padding:0 20px 12px;text-align:right}
-    .section-title h3{font-size:22px}
-    .section-title p{font-size:13px;color:var(--dim);margin-top:4px}
-
+    /* الأزرار الرئيسية */
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 20px 24px}
-    .service-card{background:var(--card);border-radius:var(--radius);padding:24px 20px;cursor:pointer;transition:.2s;box-shadow:var(--shadow)}
-    .service-card:hover{transform:translateY(-2px)}
-    .service-card.orange{background:var(--card-alt)}
-    .service-card.purple{background:var(--card-ai)}
-    .service-card.green{background:var(--card-vid)}
-    .card-icon{font-size:36px;margin-bottom:12px;position:relative}
-    .badge{position:absolute;top:-8px;right:-8px;background:var(--primary);color:#000;font-size:12px;font-weight:bold;min-width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center}
-    .card-title{font-size:18px;font-weight:600;margin-bottom:4px}
+    .service-card{background:var(--card);border-radius:16px;padding:24px 20px;cursor:pointer;transition:.2s}
+    .service-card:hover{transform:translateY(-2px);background:#243850}
+    .card-icon{font-size:32px;margin-bottom:10px}
+    .card-title{font-size:17px;font-weight:600;margin-bottom:4px}
     .card-sub{font-size:13px;color:var(--dim)}
-    .card-sub.highlight{color:var(--primary)}
-    .card-sub.orange{color:var(--orange)}
-    .card-sub.purple{color:var(--accent)}
-    .card-sub.green{color:var(--green)}
 
-    .users-panel{margin:0 20px 24px;background:var(--card);border-radius:var(--radius);padding:20px;display:flex;justify-content:space-between;align-items:center}
-    .users-info h4{font-size:18px;margin-bottom:4px}
-    .users-info p{font-size:13px;color:var(--primary)}
-    .users-icon{width:48px;height:48px;border-radius:12px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px}
-
-    .nav-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:10px 4px 14px;box-shadow:0 -4px 12px rgba(0,0,0,.2)}
-    .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 14px;border-radius:10px;transition:.2s}
-    .nav-item.active{background:var(--primary);color:#000}
-    .nav-icon{font-size:20px}
-    .nav-label{font-size:11px}
-
+    /* صفحة الذكاء */
     .page-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #2a3b4f}
-    .back-btn{background:transparent;border:none;color:var(--white);font-size:20px;cursor:pointer;padding:4px}
-    .user-list{padding:16px 20px}
-    .user-row{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;cursor:pointer;margin-bottom:8px;background:var(--card);transition:.2s}
-    .user-row:hover{background:#243b54}
-    .user-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#25c6eb,#22c55e);display:flex;align-items:center;justify-content:center;font-weight:bold}
-    .user-meta{flex:1}
-    .user-name{font-weight:600}
-    .user-status{font-size:12px;color:var(--dim)}
-    .online-indicator{width:10px;height:10px;border-radius:50%;background:var(--green);position:absolute;left:40px;top:40px}
-    .avatar-wrap{position:relative}
-
+    .page-header h3{font-size:18px}
     .chat-container{display:flex;flex-direction:column;min-height:calc(100vh - 56px)}
-    .chat-messages{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
-    .msg{max-width:75%;padding:12px 16px;border-radius:18px;line-height:1.5;position:relative}
+    .chat-box{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+    .msg{max-width:85%;padding:12px 16px;border-radius:18px;line-height:1.5}
     .msg.me{align-self:flex-end;background:var(--primary);color:#000;border-bottom-right-radius:4px}
-    .msg.other{align-self:flex-start;background:var(--card);border-bottom-left-radius:4px}
-    .msg.ai{background:rgba(139,92,246,.2);border:1px solid var(--accent)}
-    .del-btn{position:absolute;top:4px;left:8px;background:transparent;color:#fca5a5;border:none;font-size:16px;cursor:pointer;width:24px;height:24px;border-radius:50%}
-    .del-btn:hover{background:var(--red);color:#fff}
-    .chat-input-bar{display:flex;gap:10px;padding:14px 20px;border-top:1px solid #2a3b4f;align-items:center}
-    .chat-input{flex:1;background:var(--card);border:none;border-radius:24px;padding:12px 20px;color:var(--white);font-size:15px}
+    .msg.ai{align-self:flex-start;background:linear-gradient(135deg,#a855f7,#6366f1);border-bottom-left-radius:4px;max-width:90%}
+    .msg.system{align-self:center;background:#2a3b4f;color:var(--dim);font-size:13px;padding:8px 14px;max-width:95%}
+    .chat-input-bar{display:flex;gap:10px;padding:14px 20px;border-top:1px solid #2a3b4f;align-items:center;position:fixed;bottom:0;left:0;right:0;background:var(--bg)}
+    .chat-input{flex:1;background:var(--card);border:none;border-radius:24px;padding:12px 20px;color:var(--white);font-size:15px;outline:none}
     .send-btn{width:44px;height:44px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;font-size:18px}
-    .attach-btn{font-size:22px;background:transparent;border:none;color:var(--dim);cursor:pointer}
-    .file-input{display:none}
+    .send-btn:disabled{opacity:.5;cursor:not-allowed}
 
+    /* الإعدادات */
     .settings-screen{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
     .settings-screen.show{display:flex}
-    .settings-box{background:var(--card);border-radius:var(--radius);max-width:420px;width:100%;max-height:90vh;overflow-y:auto}
-    .settings-head{padding:16px 20px;border-bottom:1px solid #2a3b4f;display:flex;justify-content:space-between;align-items:center}
-    .settings-body{padding:20px}
+    .settings-box{background:var(--card);border-radius:16px;max-width:420px;width:100%;padding:24px}
     .set-item{margin-bottom:20px}
     .set-label{font-size:15px;font-weight:600;margin-bottom:8px;display:block}
-    .set-desc{font-size:12px;color:var(--dim);margin-bottom:6px}
-    .set-input{width:100%;padding:12px 16px;border-radius:10px;border:none;background:#0f1b2b;color:var(--white);font-size:14px}
-    .status-text{font-size:13px;margin-top:6px}
-    .status-ok{color:var(--green)}
-    .status-warn{color:var(--orange)}
-    .status-bad{color:var(--red)}
-    .btn-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+    .set-input{width:100%;padding:12px 16px;border-radius:10px;border:none;background:#0b141f;color:var(--white);font-size:14px;outline:none}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .btn-sm{padding:10px 20px;border-radius:10px;border:none;font-weight:bold;cursor:pointer}
     .btn-save{background:var(--green);color:#fff}
     .btn-close{background:#374151;color:#fff}
     .btn-danger{background:var(--red);color:#fff}
-    .close-settings{background:transparent;border:none;color:var(--white);font-size:22px;cursor:pointer}
-
-    .ai-container{padding:20px}
-    .ai-status{padding:16px;border-radius:12px;margin-bottom:20px}
-    .ai-status.off{background:rgba(139,92,246,.15);border:1px solid var(--accent);color:var(--accent)}
-    .ai-status.on{background:rgba(34,197,94,.15);border:1px solid var(--green);color:var(--green)}
-
-    .call-placeholder{padding:40px 20px;text-align:center;color:var(--dim)}
-    .unread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:bold;margin-left:6px}
+    .hint{font-size:12px;color:var(--dim);margin-top:6px}
   </style>
 </head>
 <body>
 
+<!-- شاشة الدخول -->
 <div id="loginPage" class="page active">
   <h1>🤝 تواصل</h1>
   <input type="text" id="nameInput" class="input" placeholder="اكتب اسمك...">
-  <button class="btn btn-primary" id="loginBtn" onclick="login()">ابدأ المحادثة</button>
-  <p style="color:var(--dim);font-size:13px;margin-top:10px">متصل بقاعدة البيانات ✅</p>
+  <button class="btn btn-primary" onclick="login()">ابدأ التطبيق</button>
+  <p class="offline-note">✅ يشتغل بدون إنترنت — ما يحفظ شيء بعد الإغلاق</p>
+  <p class="note">الذكاء الاصطناعي يحتاج إنترنت فقط</p>
 </div>
 
+<!-- الرئيسية -->
 <div id="homePage" class="page">
   <div class="header">
-    <div class="app-title">Tawasol <span class="logo-dot"></span></div>
-    <div class="header-actions">
-      <span id="dbIndicator" class="db-status">متصل ✅</span>
-      <button class="icon-btn" title="الإشعارات">🔔</button>
-      <button class="icon-btn" onclick="openSettings()" title="الإعدادات">⚙️</button>
-    </div>
+    <span class="app-title">تواصل</span>
+    <button class="icon-btn" onclick="openSettings()">⚙️</button>
   </div>
 
   <div class="profile-bar">
-    <div class="avatar" id="userAvatar">م م</div>
+    <div class="avatar" id="myAvatar">أنا</div>
     <div class="greeting">
-      <h2>أهلاً بك، <span id="dispName"></span></h2>
-      <p>
-        <span class="status-dot" id="onlineDot"></span>
-        الوضع: متصل الآن
-      </p>
+      <h2>أهلاً بك، <span id="myName"></span></h2>
+      <p>✅ جاهز — يعمل محلياً</p>
     </div>
-  </div>
-
-  <div class="search-bar">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="ابحث عن مستخدمين...">
-  </div>
-
-  <div class="section-title">
-    <h3>الخدمات الرئيسية</h3>
-    <p>اختر الخدمة التي تريدها</p>
   </div>
 
   <div class="grid">
-    <div class="service-card" onclick="goPage('messagesPage')">
-      <div class="card-icon">💬 <span class="badge" id="unreadBadge">0</span></div>
-      <div class="card-title">رسائل خاصة</div>
-      <div class="card-sub highlight" id="unreadText">لا رسائل جديدة</div>
-    </div>
-    <div class="service-card orange" onclick="goPage('publicPage')">
-      <div class="card-icon">📢</div>
-      <div class="card-title">الرسائل العامة</div>
-      <div class="card-sub orange" id="publicCount">0 منشور جديد</div>
-    </div>
-    <div class="service-card purple" onclick="goPage('aiPage')">
+    <div class="service-card" onclick="goPage('aiPage')">
       <div class="card-icon">🤖</div>
       <div class="card-title">المساعد الذكي</div>
-      <div class="card-sub purple" id="aiState">غير مفعل</div>
+      <div class="card-sub">اسأل الذكاء (يحتاج نت)</div>
     </div>
-    <div class="service-card green" onclick="goPage('callPage')">
-      <div class="card-icon">📹</div>
-      <div class="card-title">مكالمة فيديو</div>
-      <div class="card-sub green">اختر شخصاً أولاً</div>
+    <div class="service-card" onclick="alert('📢 هذه النسخة عرض فقط — للتواصل مع الآخرين نحتاج قاعدة بيانات')">
+      <div class="card-icon">💬</div>
+      <div class="card-title">الرسائل الخاصة</div>
+      <div class="card-sub">عرض — قيد التطوير</div>
     </div>
-  </div>
-
-  <div class="users-panel">
-    <div class="users-info">
-      <h4>قائمة المستخدمين</h4>
-      <p id="usersCount">جاري التحميل...</p>
-    </div>
-    <div class="users-icon">👥</div>
-  </div>
-</div>
-
-<div id="messagesPage" class="page">
-  <div class="page-header">
-    <button class="back-btn" onclick="goPage('homePage')">←</button>
-    <h3>الرسائل الخاصة</h3>
-  </div>
-  <div class="user-list" id="privateUsersList">
-    <p style="text-align:center;color:var(--dim);padding:20px">جاري التحميل...</p>
-  </div>
-</div>
-
-<div id="chatPage" class="page">
-  <div class="page-header">
-    <button class="back-btn" onclick="goPage('messagesPage')">←</button>
-    <h3 id="chatWithName">محادثة</h3>
-  </div>
-  <div class="chat-container">
-    <div class="chat-messages" id="chatBox"></div>
-    <div class="chat-input-bar">
-      <input type="file" id="imgUpload" accept="image/*" class="file-input">
-      <button class="attach-btn" onclick="document.getElementById('imgUpload').click()" title="إرفاق صورة">📎</button>
-      <input type="text" class="chat-input" id="chatInput" placeholder="اكتب رسالتك...">
-      <button class="send-btn" onclick="sendMessage()">➤</button>
+    <div class="service-card" onclick="alert('📢 هذه النسخة عرض فقط')">
+      <div class="card-icon">📢</div>
+      <div class="card-title">الرسائل العامة</div>
+      <div class="card-sub">عرض — قيد التطوير</div>
     </div>
   </div>
 </div>
 
-<div id="publicPage" class="page">
-  <div class="page-header">
-    <button class="back-btn" onclick="goPage('homePage')">←</button>
-    <h3>الرسائل العامة 📢</h3>
-  </div>
-  <div class="chat-container">
-    <div class="chat-messages" id="publicBox"></div>
-    <div class="chat-input-bar">
-      <input type="text" class="chat-input" id="publicInput" placeholder="رسالة عامة للجميع...">
-      <button class="send-btn" onclick="sendPublic()">➤</button>
-    </div>
-  </div>
-</div>
-
+<!-- الذكاء الاصطناعي -->
 <div id="aiPage" class="page">
   <div class="page-header">
-    <button class="back-btn" onclick="goPage('homePage')">←</button>
+    <button class="icon-btn" onclick="goPage('homePage')">←</button>
     <h3>المساعد الذكي 🤖</h3>
   </div>
-  <div class="ai-container">
-    <div class="ai-status" id="aiStatusBox">
-      ⚠️ لم يتم حفظ مفتاح الذكاء بعد<br>
-      اذهب إلى ⚙️ الإعدادات واحفظ المفتاح
+  <div class="chat-container">
+    <div class="chat-box" id="aiChatBox">
+      <div class="msg system">أهلاً بك! ✅ الذكاء يحتاج إنترنت ليجاوبك. ضع مفتاحك في الإعدادات ⚙️ أولاً.</div>
     </div>
-    <div class="chat-messages" id="aiChatBox"></div>
     <div class="chat-input-bar">
-      <input type="text" class="chat-input" id="aiInput" placeholder="اسألني أي سؤال...">
-      <button class="send-btn" onclick="askAI()">➤</button>
+      <input type="text" class="chat-input" id="aiInput" placeholder="اكتب سؤالك هنا..." onkeydown="if(event.key==='Enter')sendAiMsg()">
+      <button class="send-btn" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
     </div>
   </div>
 </div>
 
-<div id="callPage" class="page">
-  <div class="page-header">
-    <button class="back-btn" onclick="goPage('homePage')">←</button>
-    <h3>مكالمات الفيديو 📹</h3>
-  </div>
-  <div class="call-placeholder">
-    <p>اختر شخصاً من الرسائل الخاصة أولاً</p>
-    <p style="margin-top:10px;font-size:13px">المكالمات قيد التفعيل ✅</p>
-  </div>
-</div>
-
+<!-- الإعدادات -->
 <div id="settingsModal" class="settings-screen" onclick="if(event.target===this) closeSettings()">
   <div class="settings-box">
-    <div class="settings-head">
-      <h3>⚙️ الإعدادات</h3>
-      <button class="close-settings" onclick="closeSettings()">×</button>
+    <h3 style="margin-bottom:20px">⚙️ الإعدادات</h3>
+    <div class="set-item">
+      <label class="set-label">اسمك</label>
+      <input type="text" class="set-input" id="settName" placeholder="اسمك">
     </div>
-    <div class="settings-body">
-      <div class="set-item">
-        <label class="set-label">اسم المستخدم</label>
-        <div id="settName" class="set-desc">—</div>
-      </div>
-      <div class="set-item">
-        <label class="set-label">🔑 مفتاح الذكاء الاصطناعي</label>
-        <p class="set-desc">محفوظ في تليفونك فقط — لا يُرسل لأحد</p>
-        <input type="password" id="aiKeyInput" class="set-input" placeholder="الصق المفتاح هنا...">
-        <div id="aiKeyStatus" class="status-text status-warn">• لم يُحفظ بعد</div>
-        <div class="btn-row">
-          <button class="btn-sm btn-save" onclick="saveAIKey()">✅ حفظ</button>
-          <button class="btn-sm btn-danger" onclick="clearAIKey()">🗑️ مسح</button>
-        </div>
-      </div>
-      <div class="set-item">
-        <label class="set-label">قاعدة البيانات</label>
-        <p class="set-desc">متصل بـ Supabase ✅</p>
-      </div>
-      <div class="btn-row">
-        <button class="btn-sm btn-close" onclick="closeSettings()">إغلاق</button>
-        <button class="btn-sm btn-danger" onclick="logout()">🚪 خروج</button>
-      </div>
+    <div class="set-item">
+      <label class="set-label">مفتاح الذكاء الاصطناعي</label>
+      <input type="password" class="set-input" id="aiKeyInput" placeholder="أدخل مفتاح Groq هنا">
+      <p class="hint">مثال: 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</p>
     </div>
-  </div>
-</div>
-
-<div class="nav-bar" id="mainNav" style="display:none">
-  <div class="nav-item" onclick="goPage('homePage')" data-nav="home">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">الرئيسية</span>
-  </div>
-  <div class="nav-item" onclick="goPage('messagesPage')" data-nav="messages">
-    <span class="nav-icon">💬</span>
-    <span class="nav-label">الرسائل</span>
-  </div>
-  <div class="nav-item" onclick="goPage('aiPage')" data-nav="ai">
-    <span class="nav-icon">🤖</span>
-    <span class="nav-label">الذكاء</span>
-  </div>
-  <div class="nav-item" onclick="goPage('callPage')" data-nav="calls">
-    <span class="nav-icon">📹</span>
-    <span class="nav-label">المكالمات</span>
-  </div>
-  <div class="nav-item" onclick="goPage('publicPage')" data-nav="public">
-    <span class="nav-icon">📢</span>
-    <span class="nav-label">العامة</span>
+    <div class="btn-row">
+      <button class="btn-sm btn-save" onclick="saveSettings()">✅ حفظ</button>
+      <button class="btn-sm btn-close" onclick="closeSettings()">إغلاق</button>
+      <button class="btn-sm btn-danger" onclick="logout()">🚪 خروج</button>
+    </div>
   </div>
 </div>
 
 <script>
-// ✅ ربط قاعدة البيانات — الكود صحيح 100%
--- أنشئ الجداول
-create table if not exists users (
-  name text primary key,
-  last_seen timestamp with time zone default now(),
-  online boolean default true
-);
+let me = "";
+let AI_KEY = localStorage.getItem('ai_groq_key') || "";
+const GROQ_MODEL = "llama3-8b-8192";
 
-create table if not exists messages (
-  id bigint generated always as identity primary key,
-  sender text not null,
-  receiver text not null,
-  text text not null,
-  created_at timestamp with time zone default now()
-);
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
--- فعّل الحماية
-alter table users enable row level security;
-alter table messages enable row level security;
-
--- امسح السياسات لو موجودة
-drop policy if exists users_all on users;
-drop policy if exists messages_all on messages;
-
--- أنشئ السياسات من جديد
-create policy users_all on users for all using (true) with check (true);
-create policy messages_all on messages for all using (true) with check (true);
-";
-
-const { createClient } = window.supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let currentUser = "";
-let activeChatWith = "";
-let messagesSub = null;
-let usersSub = null;
-
-// ✅ الدخول
-async function login() {
-  const name = document.getElementById("nameInput").value.trim();
-  if (!name) return alert("اكتب اسمك أولاً");
-  
-  currentUser = name;
-  localStorage.setItem("user_name", name);
-  
-  const { error } = await sb.from("users").upsert({
-    name: currentUser,
-    last_seen: new Date().toISOString(),
-    online: true
-  });
-
-  if (error) {
-    console.error(error);
-    return alert("خطأ في الاتصال: " + error.message);
-  }
-
-  document.getElementById("dispName").textContent = currentUser;
-  document.getElementById("settName").textContent = currentUser;
-  document.getElementById("userAvatar").textContent = 
-    currentUser[0] + (currentUser.split(' ')[1]?.[0] || '');
-
+function login(){
+  const name=document.getElementById('nameInput').value.trim();
+  if(!name) return alert('اكتب اسمك أولاً');
+  me=name;
+  document.getElementById('myName').textContent=me;
+  document.getElementById('myAvatar').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('settName').value=me;
   goPage('homePage');
-  document.getElementById('mainNav').style.display = 'flex';
-  document.getElementById('onlineDot').classList.add('status-dot');
-  document.getElementById('onlineDot').classList.remove('off');
-
-  loadUsersList();
-  loadPublicMessages();
-  updateAIStatus();
-  subscribeToPublicMessages();
-  subscribeToUsers();
-
-  setInterval(() => {
-    sb.from("users").upsert({
-      name: currentUser,
-      last_seen: new Date().toISOString(),
-      online: true
-    });
-  }, 30000);
 }
 
-// ✅ قائمة المستخدمين
-async function loadUsersList() {
-  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data, error } = await sb
-    .from("users")
-    .select("*")
-    .neq("name", currentUser)
-    .order("last_seen", { ascending: false });
-
-  if (error) return console.error(error);
-
-  const onlineNow = data.filter(u => new Date(u.last_seen) >= new Date(fiveMinAgo));
-  document.getElementById("usersCount").textContent = 
-    `${(data?.length || 0) + 1} مستخدم • ${onlineNow.length + 1} متصل الآن`;
-
-  const list = document.getElementById("privateUsersList");
-  list.innerHTML = "";
-  if (!data || data.length === 0) {
-    list.innerHTML = '<p style="text-align:center;color:var(--dim)">لا يوجد مستخدمون آخرون حالياً</p>';
-    return;
-  }
-
-  data.forEach(u => {
-    const isOnline = new Date(u.last_seen) >= new Date(fiveMinAgo);
-    list.innerHTML += `
-      <div class="user-row" onclick="openPrivateChat('${u.name}')">
-        <div class="avatar-wrap">
-          <div class="user-avatar">${u.name[0]}</div>
-          ${isOnline ? '<span class="online-indicator"></span>' : ''}
-        </div>
-        <div class="user-meta">
-          <div class="user-name">${u.name}</div>
-          <div class="user-status">${isOnline ? 'متصل الآن' : 'غير متصل'}</div>
-        </div>
-      </div>
-    `;
-  });
-}
-
-// ✅ فتح محادثة خاصة
-async function openPrivateChat(personName) {
-  activeChatWith = personName;
-  document.getElementById('chatWithName').textContent = `محادثة مع ${personName}`;
-  goPage('chatPage');
-  await loadPrivateMessages();
-  
-  if (messagesSub) messagesSub.unsubscribe();
-  messagesSub = sb.channel(`chat-${currentUser}-${personName}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages" },
-      () => loadPrivateMessages()
-    ).subscribe();
-}
-
-async function loadPrivateMessages() {
-  const { data, error } = await sb
-    .from("messages")
-    .select("*")
-    .or(`and(sender.eq.${currentUser},receiver.eq.${activeChatWith}),and(sender.eq.${activeChatWith},receiver.eq.${currentUser})`)
-    .order("created_at", { ascending: true });
-
-  if (error) return console.error(error);
-  renderMessages(data || [], 'chatBox');
-}
-
-function renderMessages(messages, containerId) {
-  const box = document.getElementById(containerId);
-  box.innerHTML = "";
-  messages.forEach(m => {
-    const isMe = m.sender === currentUser;
-    box.innerHTML += `
-      <div class="msg ${isMe ? 'me' : 'other'}">
-        ${!isMe ? `<small style="opacity:.7">${m.sender}</small><br>` : ''}
-        ${m.text}
-        ${isMe ? `<button class="del-btn" onclick="delMsg(${m.id})">×</button>` : ''}
-      </div>
-    `;
-  });
-  box.scrollTop = box.scrollHeight;
-}
-
-// ✅ إرسال رسالة خاصة
-async function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const text = input.value.trim();
-  if (!text || !activeChatWith) return;
-
-  await sb.from("messages").insert({
-    sender: currentUser,
-    receiver: activeChatWith,
-    text: text,
-    created_at: new Date().toISOString()
-  });
-  input.value = "";
-}
-
-// ✅ رسائل عامة
-async function sendPublic() {
-  const input = document.getElementById("publicInput");
-  const text = input.value.trim();
-  if (!text) return;
-
-  await sb.from("messages").insert({
-    sender: currentUser,
-    receiver: "public",
-    text: text,
-    created_at: new Date().toISOString()
-  });
-  input.value = "";
-}
-
-async function loadPublicMessages() {
-  const { data, error } = await sb
-    .from("messages")
-    .select("*")
-    .eq("receiver", "public")
-    .order("created_at", { ascending: true })
-    .limit(50);
-
-  if (error) return console.error(error);
-  renderMessages(data || [], 'publicBox');
-  document.getElementById("publicCount").textContent = `${data?.length || 0} منشور`;
-}
-
-function subscribeToPublicMessages() {
-  sb.channel("public-messages")
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: "receiver=eq.public" },
-      () => loadPublicMessages()
-    ).subscribe();
-}
-
-function subscribeToUsers() {
-  sb.channel("users-online")
-    .on("postgres_changes", { event: "*", schema: "public", table: "users" },
-      () => loadUsersList()
-    ).subscribe();
-}
-
-// ✅ حذف رسالة
-async function delMsg(msgId) {
-  if (!confirm("تحذف هذه الرسالة؟")) return;
-  await sb.from("messages").delete().eq("id", msgId);
-}
-
-// ✅ التنقل
-function goPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
-}
-
-// ✅ الإعدادات والمفتاح
-function openSettings() {
+function openSettings(){
+  document.getElementById('aiKeyInput').value=AI_KEY;
   document.getElementById('settingsModal').classList.add('show');
-  const saved = localStorage.getItem('ai_api_key');
-  if (saved) {
-    document.getElementById('aiKeyInput').value = saved;
-    document.getElementById('aiKeyStatus').className = 'status-text status-ok';
-    document.getElementById('aiKeyStatus').textContent = '✅ مفتاح محفوظ وجاهز';
-  }
 }
-function closeSettings() {
+
+function closeSettings(){
   document.getElementById('settingsModal').classList.remove('show');
 }
-function saveAIKey() {
-  const key = document.getElementById('aiKeyInput').value.trim();
-  if (!key) return alert("اكتب المفتاح أولاً");
-  localStorage.setItem('ai_api_key', key);
-  document.getElementById('aiKeyStatus').className = 'status-text status-ok';
-  document.getElementById('aiKeyStatus').textContent = '✅ تم الحفظ';
-  updateAIStatus();
-}
-function clearAIKey() {
-  if (!confirm("تمسح المفتاح؟")) return;
-  localStorage.removeItem('ai_api_key');
-  updateAIStatus();
-}
-function updateAIStatus() {
-  const hasKey = !!localStorage.getItem('ai_api_key');
-  document.getElementById('aiState').textContent = hasKey ? '✅ مفعل' : 'غير مفعل';
-  document.getElementById('aiStatusBox').className = hasKey ? 'ai-status on' : 'ai-status off';
-}
 
-// ✅ الذكاء الاصطناعي
-function askAI() {
-  if (!localStorage.getItem('ai_api_key')) {
-    alert("⚠️ احفظ المفتاح من الإعدادات أولاً");
-    return;
+function saveSettings(){
+  const newKey=document.getElementById('aiKeyInput').value.trim();
+  const newName=document.getElementById('settName').value.trim();
+  if(newKey){
+    AI_KEY=newKey;
+    localStorage.setItem('ai_groq_key',AI_KEY);
   }
-  const input = document.getElementById('aiInput');
-  const text = input.value.trim();
-  if (!text) return;
-  
-  const box = document.getElementById('aiChatBox');
-  box.innerHTML += `<div class="msg me">${text}</div>`;
-  input.value = '';
-  
-  setTimeout(() => {
-    box.innerHTML += `<div class="msg ai">🤖 تم استلام سؤالك ✅ المفتاح شغال تماماً</div>`;
-    box.scrollTop = box.scrollHeight;
-  }, 1000);
-}
-
-// ✅ الخروج
-async function logout() {
-  if (!confirm("تسجل خروج؟")) return;
-  await sb.from("users").update({ online: false }).eq("name", currentUser);
-  localStorage.removeItem('user_name');
-  goPage('loginPage');
-  document.getElementById('mainNav').style.display = 'none';
+  if(newName){
+    me=newName;
+    document.getElementById('myName').textContent=me;
+    document.getElementById('myAvatar').textContent=me.charAt(0).toUpperCase();
+  }
+  alert('✅ تم الحفظ');
   closeSettings();
 }
 
-window.onload = function() {
-  const savedName = localStorage.getItem('user_name');
-  if (savedName) document.getElementById('nameInput').value = savedName;
-};
-</script>
+function addAiMsg(text, isMe=false){
+  const box=document.getElementById('aiChatBox');
+  const div=document.createElement('div');
+  div.className='msg '+(isMe?'me':'ai');
+  div.textContent=text;
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+}
 
+async function sendAiMsg(){
+  const input=document.getElementById('aiInput');
+  const text=input.value.trim();
+  if(!text) return;
+  
+  if(!AI_KEY){
+    alert('⚠️ ضع مفتاح الذكاء في الإعدادات أولاً');
+    return;
+  }
+  
+  addAiMsg(text, true);
+  input.value='';
+  const btn=document.getElementById('aiSendBtn');
+  btn.disabled=true;
+  
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${AI_KEY}`
+      },
+      body:JSON.stringify({
+        model:GROQ_MODEL,
+        messages:[{role:'user',content:text}],
+        temperature:0.7
+      })
+    });
+    
+    if(!res.ok) throw new Error('خطأ في الاتصال');
+    const data=await res.json();
+    const reply=data.choices[0].message.content||'لم أتلق رداً';
+    addAiMsg(reply);
+  }catch(err){
+    addAiMsg('❌ تأكد من اتصال الإنترنت والمفتاح صحيح');
+  }
+  
+  btn.disabled=false;
+}
+
+function logout(){
+  if(confirm('تسجيل الخروج؟ سيتم مسح كل شيء')){
+    localStorage.removeItem('ai_groq_key');
+    location.reload();
+  }
+}
+</script>
 </body>
 </html>
